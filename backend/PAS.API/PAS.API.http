@@ -1,0 +1,6 @@
+@PAS.API_HostAddress = http://localhost:5027
+
+GET {{PAS.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
