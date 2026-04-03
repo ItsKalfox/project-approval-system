@@ -7,6 +7,7 @@ frontend/.env
 **/bin/
 **/obj/
 .vs/
+backend/PAS.API/appsettings.json
 
 # env
 .env
