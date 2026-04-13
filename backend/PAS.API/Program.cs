@@ -60,6 +60,13 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole("MODULE LEADER"));
 });
 
+// ── CORS (allow Vite dev server) ─────────────────────────────────────────
+builder.Services.AddCors(options =>
+    options.AddDefaultPolicy(policy =>
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
+              .AllowAnyHeader()
+              .AllowAnyMethod()));
+
 // ── MVC Controllers ────────────────────────────────────────────────────────
 builder.Services.AddControllers();
 
@@ -75,7 +82,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
