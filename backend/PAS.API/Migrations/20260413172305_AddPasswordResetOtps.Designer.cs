@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PAS.API.Data;
 
@@ -11,9 +12,11 @@ using PAS.API.Data;
 namespace PAS.API.Migrations
 {
     [DbContext(typeof(PASDbContext))]
-    partial class PASDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260413172305_AddPasswordResetOtps")]
+    partial class AddPasswordResetOtps
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

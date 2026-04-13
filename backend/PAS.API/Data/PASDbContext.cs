@@ -21,6 +21,7 @@ public class PASDbContext : DbContext
     public DbSet<CourseworkProject> CourseworkProjects { get; set; }
     public DbSet<Match> Matches { get; set; }
     public DbSet<Interest> Interests { get; set; }
+    public DbSet<PasswordResetOtp> PasswordResetOtps { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,5 +65,9 @@ public class PASDbContext : DbContext
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)
             .IsUnique();
+
+        // Index on OTP email for fast lookups
+        modelBuilder.Entity<PasswordResetOtp>()
+            .HasIndex(o => o.Email);
     }
 }

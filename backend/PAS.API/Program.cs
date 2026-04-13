@@ -24,6 +24,8 @@ builder.Services.AddDbContext<PASDbContext>(options =>
 // ── Application services ───────────────────────────────────────────────────
 builder.Services.AddScoped<IUserAdminService, UserAdminService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 
 // ── JWT Bearer Authentication ──────────────────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
