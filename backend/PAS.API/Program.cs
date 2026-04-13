@@ -26,6 +26,7 @@ builder.Services.AddScoped<IUserAdminService, UserAdminService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
+builder.Services.AddScoped<IStudentService, StudentService>();
 
 // ── JWT Bearer Authentication ──────────────────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -52,7 +53,12 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Accessible by MODULE LEADER role (extend this list to add more roles later)
+    options.AddPolicy("ModuleLeaderOnly", policy =>
+        policy.RequireRole("MODULE LEADER"));
+});
 
 // ── MVC Controllers ────────────────────────────────────────────────────────
 builder.Services.AddControllers();
