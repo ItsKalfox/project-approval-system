@@ -12,8 +12,8 @@ using PAS.API.Data;
 namespace PAS.API.Migrations
 {
     [DbContext(typeof(PASDbContext))]
-    [Migration("20260413081306_InitialPASSchema")]
-    partial class InitialPASSchema
+    [Migration("20260413153121_InitialPASSchemaReset")]
+    partial class InitialPASSchemaReset
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -74,8 +74,8 @@ namespace PAS.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GroupId"));
 
-                    b.Property<string>("LeaderId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int?>("LeaderId")
+                        .HasColumnType("int");
 
                     b.Property<int>("MaximumMembers")
                         .HasColumnType("int");
@@ -105,9 +105,8 @@ namespace PAS.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("SupervisorId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("SupervisorId")
+                        .HasColumnType("int");
 
                     b.HasKey("InterestId");
 
@@ -132,9 +131,8 @@ namespace PAS.API.Migrations
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
 
-                    b.Property<string>("SupervisorId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("SupervisorId")
+                        .HasColumnType("int");
 
                     b.HasKey("MatchId");
 
@@ -147,8 +145,8 @@ namespace PAS.API.Migrations
 
             modelBuilder.Entity("PAS.API.Models.ModuleLeader", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("UserId");
 
@@ -210,8 +208,8 @@ namespace PAS.API.Migrations
 
             modelBuilder.Entity("PAS.API.Models.Student", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Batch")
                         .IsRequired()
@@ -224,8 +222,8 @@ namespace PAS.API.Migrations
 
             modelBuilder.Entity("PAS.API.Models.Supervisor", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("UserId");
 
@@ -234,8 +232,11 @@ namespace PAS.API.Migrations
 
             modelBuilder.Entity("PAS.API.Models.User", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");

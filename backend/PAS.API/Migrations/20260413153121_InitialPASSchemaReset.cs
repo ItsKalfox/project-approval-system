@@ -6,40 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PAS.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialPASSchema : Migration
+    public partial class InitialPASSchemaReset : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_Students",
-                table: "Students");
-
-            migrationBuilder.DropColumn(
-                name: "Id",
-                table: "Students");
-
-            migrationBuilder.DropColumn(
-                name: "Email",
-                table: "Students");
-
-            migrationBuilder.RenameColumn(
-                name: "FullName",
-                table: "Students",
-                newName: "Batch");
-
-            migrationBuilder.AddColumn<string>(
-                name: "UserId",
-                table: "Students",
-                type: "nvarchar(450)",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddPrimaryKey(
-                name: "PK_Students",
-                table: "Students",
-                column: "UserId");
-
             migrationBuilder.CreateTable(
                 name: "Courseworks",
                 columns: table => new
@@ -54,25 +25,6 @@ namespace PAS.API.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Courseworks", x => x.CourseworkId);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Groups",
-                columns: table => new
-                {
-                    GroupId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    LeaderId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    MaximumMembers = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Groups", x => x.GroupId);
-                    table.ForeignKey(
-                        name: "FK_Groups_Students_LeaderId",
-                        column: x => x.LeaderId,
-                        principalTable: "Students",
-                        principalColumn: "UserId");
                 });
 
             migrationBuilder.CreateTable(
@@ -92,7 +44,8 @@ namespace PAS.API.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -102,6 +55,77 @@ namespace PAS.API.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.UserId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ModuleLeaders",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ModuleLeaders", x => x.UserId);
+                    table.ForeignKey(
+                        name: "FK_ModuleLeaders_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Students",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Batch = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Students", x => x.UserId);
+                    table.ForeignKey(
+                        name: "FK_Students_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Supervisors",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Supervisors", x => x.UserId);
+                    table.ForeignKey(
+                        name: "FK_Supervisors_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Groups",
+                columns: table => new
+                {
+                    GroupId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    LeaderId = table.Column<int>(type: "int", nullable: true),
+                    MaximumMembers = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Groups", x => x.GroupId);
+                    table.ForeignKey(
+                        name: "FK_Groups_Students_LeaderId",
+                        column: x => x.LeaderId,
+                        principalTable: "Students",
+                        principalColumn: "UserId");
                 });
 
             migrationBuilder.CreateTable(
@@ -130,40 +154,6 @@ namespace PAS.API.Migrations
                         column: x => x.ResearchAreaId,
                         principalTable: "ResearchAreas",
                         principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ModuleLeaders",
-                columns: table => new
-                {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ModuleLeaders", x => x.UserId);
-                    table.ForeignKey(
-                        name: "FK_ModuleLeaders_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Supervisors",
-                columns: table => new
-                {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Supervisors", x => x.UserId);
-                    table.ForeignKey(
-                        name: "FK_Supervisors_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -197,7 +187,7 @@ namespace PAS.API.Migrations
                     InterestId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ProjectId = table.Column<int>(type: "int", nullable: false),
-                    SupervisorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SupervisorId = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -226,7 +216,7 @@ namespace PAS.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MatchDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ProjectId = table.Column<int>(type: "int", nullable: false),
-                    SupervisorId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    SupervisorId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -290,23 +280,11 @@ namespace PAS.API.Migrations
                 table: "Users",
                 column: "Email",
                 unique: true);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Students_Users_UserId",
-                table: "Students",
-                column: "UserId",
-                principalTable: "Users",
-                principalColumn: "UserId",
-                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Students_Users_UserId",
-                table: "Students");
-
             migrationBuilder.DropTable(
                 name: "CourseworkProjects");
 
@@ -335,40 +313,10 @@ namespace PAS.API.Migrations
                 name: "ResearchAreas");
 
             migrationBuilder.DropTable(
+                name: "Students");
+
+            migrationBuilder.DropTable(
                 name: "Users");
-
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_Students",
-                table: "Students");
-
-            migrationBuilder.DropColumn(
-                name: "UserId",
-                table: "Students");
-
-            migrationBuilder.RenameColumn(
-                name: "Batch",
-                table: "Students",
-                newName: "FullName");
-
-            migrationBuilder.AddColumn<int>(
-                name: "Id",
-                table: "Students",
-                type: "int",
-                nullable: false,
-                defaultValue: 0)
-                .Annotation("SqlServer:Identity", "1, 1");
-
-            migrationBuilder.AddColumn<string>(
-                name: "Email",
-                table: "Students",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddPrimaryKey(
-                name: "PK_Students",
-                table: "Students",
-                column: "Id");
         }
     }
 }
