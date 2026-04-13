@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using PAS.API.Data;
+using PAS.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register EF Core DbContext
+// ── EF Core DbContext ──────────────────────────────────────────────────────
 builder.Services.AddDbContext<PASDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -17,7 +18,13 @@ builder.Services.AddDbContext<PASDbContext>(options =>
         }
     ));
 
-// Swagger / OpenAPI
+// ── Application services ───────────────────────────────────────────────────
+builder.Services.AddScoped<IUserAdminService, UserAdminService>();
+
+// ── MVC Controllers ────────────────────────────────────────────────────────
+builder.Services.AddControllers();
+
+// ── Swagger / OpenAPI ──────────────────────────────────────────────────────
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -30,7 +37,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Temporary test endpoint
+app.MapControllers();
+
+// Health-check / root endpoint
 app.MapGet("/", () => "PAS API is running successfully!");
 
 app.Run();
