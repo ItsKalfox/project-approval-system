@@ -12,7 +12,7 @@ using PAS.API.Data;
 namespace PAS.API.Migrations
 {
     [DbContext(typeof(PASDbContext))]
-    [Migration("20260413080659_InitialPASSchema")]
+    [Migration("20260413081306_InitialPASSchema")]
     partial class InitialPASSchema
     {
         /// <inheritdoc />
