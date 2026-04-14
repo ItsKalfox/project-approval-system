@@ -1,4 +1,5 @@
 import DashboardShell from './DashboardShell';
+import StudentManagementTab from './StudentManagementTab';
 
 const TABS = [
   { id: 'student-mgmt',     label: 'Student Management'        },
@@ -17,15 +18,7 @@ export default function ModuleLeaderDashboard() {
       {({ activeTab }) => (
         <>
           {activeTab === 'student-mgmt' && (
-            <div className="tab-content">
-              <div className="dash-card">
-                <div className="dash-card-title">👥 Student Management</div>
-                <p style={{ color: 'var(--gray-500)', fontSize: 14, lineHeight: 1.7 }}>
-                  Create, view, update, and delete student records. Reset student passwords
-                  and manage batch assignments from here.
-                </p>
-              </div>
-            </div>
+            <StudentManagementTab />
           )}
 
           {activeTab === 'supervisor-mgmt' && (
