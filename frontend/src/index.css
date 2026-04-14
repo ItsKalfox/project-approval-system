@@ -480,7 +480,119 @@ body {
 
 .text-center { text-align: center; }
 
+/* ─── Portal Nav — 3-zone top bar ───────────────────────────────────── */
+.portal-nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  height: 64px;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  padding: 0 28px;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  gap: 8px;
+}
+
+/* ── Left zone: logo + portal name ── */
+.portal-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding-right: 30px;
+}
+
+.portal-logo-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+
+.portal-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-500);
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+/* ── Centre zone: tabs ── */
+.portal-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 100%;
+}
+
+.portal-tab {
+  position: relative;
+  height: 100%;
+  padding: 0 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-500);
+  white-space: nowrap;
+  transition: color var(--transition);
+  border-bottom: 3px solid transparent;
+  min-width: 150px;
+}
+
+.portal-tab:hover { color: var(--gray-900); }
+
+.portal-tab.active {
+  background: var(--green-500);
+  color: black;
+  font-weight: 700;
+  border-bottom-color: var(--green-600);
+}
+
+/* ── Right zone: user info + sign out ── */
+.portal-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.portal-signout-btn {
+  padding: 7px 16px;
+  background: transparent;
+  border: 1.5px solid var(--green-500);
+  border-radius: var(--radius-sm);
+  color: var(--green-700);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.portal-signout-btn:hover {
+  background: var(--green-50);
+  transform: translateY(-1px);
+}
+
+/* Role-coloured avatars */
+.nav-user-avatar.student       { background: #dbeafe; color: #1d4ed8; }
+.nav-user-avatar.supervisor    { background: #f3e8ff; color: #7e22ce; }
+.nav-user-avatar.module-leader { background: var(--green-100); color: var(--green-700); }
+
+/* Tab content area */
+.tab-content { animation: slideUp 0.2s ease; }
+
 /* ─── Dashboard Layout ────────────────────────────────────────────────── */
+
 .dashboard-page {
   min-height: 100vh;
   background: var(--gray-50);

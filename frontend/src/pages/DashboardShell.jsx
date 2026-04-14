@@ -2,18 +2,31 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 /*
- * Shared dashboard shell used by StudentDashboard, SupervisorDashboard,
- * and ModuleLeaderDashboard. Each page passes its own `role` label + accent.
+ * DashboardShell — shared layout for all portals.
+ *
+ * Props:
+ *   portalName  — e.g. "STUDENT PORTAL"
+ *   tabs        — array of { id, label } objects
+ *   roleClass   — CSS modifier for role badge colour
+ *   children    — receives { activeTab } render prop
  */
-export default function DashboardShell({ roleLabel, roleClass, accentEmoji, children }) {
+export default function DashboardShell({ portalName, tabs = [], roleClass, children }) {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState(tabs[0]?.id ?? '');
 
   useEffect(() => {
     const raw = localStorage.getItem('pas_user');
     if (!raw) { navigate('/login'); return; }
     setUser(JSON.parse(raw));
   }, [navigate]);
+
+  // Sync default tab if tabs list changes
+  useEffect(() => {
+    if (tabs.length && !tabs.find(t => t.id === activeTab)) {
+      setActiveTab(tabs[0].id);
+    }
+  }, [tabs, activeTab]);
 
   const handleLogout = () => {
     localStorage.removeItem('pas_token');
@@ -22,22 +35,46 @@ export default function DashboardShell({ roleLabel, roleClass, accentEmoji, chil
   };
 
   const initials = user?.name
-    ? user.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+    ? user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : '?';
 
   return (
     <div className="dashboard-page">
-      {/* ── Nav bar ── */}
-      <nav className="dashboard-nav">
-        <div className="nav-brand">
-          <div className="nav-brand-icon">P</div>
-          Project Approval System
+
+      {/* ══════════════════════════════════════════════════════════════
+          TOP BAR — three zones: left | centre | right
+      ══════════════════════════════════════════════════════════════ */}
+      <nav className="portal-nav">
+
+        {/* ── LEFT: logo + portal name ── */}
+        <div className="portal-nav-left">
+          <img
+            src="/favicon.png"
+            alt="PAS logo"
+            className="portal-logo-img"
+          />
+          <span className="portal-name">{portalName}</span>
         </div>
 
-        <div className="nav-right">
+        {/* ── CENTRE: tabs ── */}
+        <div className="portal-nav-tabs">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              id={`tab-${tab.id}`}
+              className={`portal-tab ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── RIGHT: user info + sign out ── */}
+        <div className="portal-nav-right">
           {user && (
             <div className="nav-user">
-              <div className="nav-user-avatar">{initials}</div>
+              <div className={`nav-user-avatar ${roleClass}`}>{initials}</div>
               <div className="nav-user-info">
                 <div className="nav-user-name">{user.name}</div>
                 <div className="nav-user-email">{user.email}</div>
@@ -46,64 +83,20 @@ export default function DashboardShell({ roleLabel, roleClass, accentEmoji, chil
           )}
           <button
             id="logout-btn"
-            className="btn btn-outline"
-            style={{ padding: '7px 14px', fontSize: 13 }}
+            className="portal-signout-btn"
             onClick={handleLogout}
           >
-            Sign out
+            Sign Out
           </button>
         </div>
       </nav>
 
-      {/* ── Content ── */}
+      {/* ══════════════════════════════════════════════════════════════
+          PAGE CONTENT — passes activeTab so each dashboard can render
+          the right content per tab
+      ══════════════════════════════════════════════════════════════ */}
       <div className="dashboard-content">
-        {/* Header */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--gray-900)' }}>
-              {accentEmoji} {roleLabel} Dashboard
-            </h1>
-            <span className={`role-badge ${roleClass}`}>{roleLabel}</span>
-          </div>
-          <p style={{ color: 'var(--gray-500)', fontSize: 14 }}>
-            Welcome back, <strong style={{ color: 'var(--gray-700)' }}>{user?.name}</strong>. 
-            This is your {roleLabel.toLowerCase()} portal.
-          </p>
-        </div>
-
-        {/* User details card */}
-        <div className="dash-card">
-          <div className="dash-card-title">👤 Account Information</div>
-          <div className="detail-row">
-            <span className="detail-label">Full Name</span>
-            <span className="detail-value">{user?.name ?? '—'}</span>
-          </div>
-          <div className="detail-row">
-            <span className="detail-label">Email</span>
-            <span className="detail-value">{user?.email ?? '—'}</span>
-          </div>
-          <div className="detail-row">
-            <span className="detail-label">Role</span>
-            <span className="detail-value">
-              <span className={`role-badge ${roleClass}`}>{user?.role ?? '—'}</span>
-            </span>
-          </div>
-          {user?.batch && (
-            <div className="detail-row">
-              <span className="detail-label">Batch</span>
-              <span className="detail-value">{user.batch}</span>
-            </div>
-          )}
-          <div className="detail-row">
-            <span className="detail-label">User ID</span>
-            <span className="detail-value" style={{ color: 'var(--gray-400)', fontSize: 13 }}>
-              #{user?.userId}
-            </span>
-          </div>
-        </div>
-
-        {/* Role-specific placeholder */}
-        {children}
+        {typeof children === 'function' ? children({ activeTab }) : children}
       </div>
     </div>
   );
