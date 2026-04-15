@@ -26,26 +26,16 @@ public class AllocationsController : ControllerBase
         var allocations = _context.Matches
             .Include(m => m.Project)
             .Include(m => m.Supervisor).ThenInclude(s => s.User)
-            .Select(m => new AllocationResponseDto
-            {
-                Id = m.MatchId,
-                SupervisorName = m.Supervisor.User.Name,
-                ProjectName = m.Project.Title,
-                MatchDate = m.MatchDate
-            })
             .ToList();
 
-        var studentsAllocated = _context.Matches.Select(m => m.ProjectId).ToHashSet();
-
-        var studentNames = _context.Projects
-            .Where(p => studentsAllocated.Contains(p.ProjectId))
-            .Select(p => p.Title)
-            .ToList();
-
-        var result = allocations.Select(a =>
+        var result = allocations.Select(m => new AllocationResponseDto
         {
-            a.StudentName = _context.Projects.FirstOrDefault(p => p.Title == a.ProjectName)?.Title ?? "-";
-            return a;
+            Id = m.MatchId,
+            SupervisorName = m.Supervisor?.User?.Name ?? "Unknown",
+            StudentName = m.Project?.Title ?? "Unknown",
+            ProjectName = m.Project?.Title ?? "Unknown",
+            MatchDate = m.MatchDate,
+            Status = "pending"
         }).ToList();
 
         return Ok(new { data = result });
@@ -54,22 +44,20 @@ public class AllocationsController : ControllerBase
     [HttpGet("students-with-matches")]
     public IActionResult GetStudentsWithMatches()
     {
-        var matchedProjectIds = _context.Matches.Select(m => m.ProjectId).ToHashSet();
-
-        var students = _context.Matches
+        var matched = _context.Matches
             .Include(m => m.Project)
-            .Where(m => matchedProjectIds.Contains(m.ProjectId))
+            .Where(m => m.ProjectId > 0)
+            .ToList()
             .Select(m => new
             {
-                id = m.ProjectId,
-                name = m.Project.Title,
+                id = m.MatchId,
+                name = m.Project?.Title ?? "Unknown",
                 projectId = m.ProjectId,
-                projectName = m.Project.Title
+                projectName = m.Project?.Title ?? "Unknown"
             })
-            .Distinct()
             .ToList();
 
-        return Ok(new { data = students });
+        return Ok(new { data = matched });
     }
 
     [HttpGet("available")]

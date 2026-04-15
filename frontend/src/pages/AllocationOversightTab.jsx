@@ -118,14 +118,35 @@ export default function AllocationOversightTab() {
         fetch(`${API}/api/projects/available`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API}/api/supervisors`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
-      const studentsData = studentsRes.ok ? (await studentsRes.json()).data || [] : [];
-      const projectsData = projectsRes.ok ? (await projectsRes.json()).data || [] : [];
-      const supervisorsData = supervisorsRes.ok ? (await supervisorsRes.json()).data || [] : [];
+      
+      let studentsData = [];
+      let projectsData = [];
+      let supervisorsData = [];
+      
+      try {
+        const studentsJson = await studentsRes.json();
+        studentsData = Array.isArray(studentsJson?.data) ? studentsJson.data : [];
+      } catch { studentsData = []; }
+      
+      try {
+        const projectsJson = await projectsRes.json();
+        projectsData = Array.isArray(projectsJson?.data) ? projectsJson.data : [];
+      } catch { projectsData = []; }
+      
+      try {
+        const supervisorsJson = await supervisorsRes.json();
+        const supData = supervisorsJson?.data;
+        supervisorsData = Array.isArray(supData) ? supData : (Array.isArray(supData?.Data) ? supData.Data : []);
+      } catch { supervisorsData = []; }
+      
       setMatchedStudents(studentsData);
       setAvailableProjects(projectsData);
       setAvailableSupervisors(supervisorsData);
     } catch (err) {
       setSnackbar({ message: 'Failed to load intervention data', type: 'error' });
+      setMatchedStudents([]);
+      setAvailableProjects([]);
+      setAvailableSupervisors([]);
     } finally {
       setInterventionLoading(false);
     }
