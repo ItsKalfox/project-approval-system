@@ -30,11 +30,14 @@ public class StudentController : ControllerBase
     {
         try
         {
-            var result = await _studentService.CreateStudentAsync(dto);
+            var (student, emailSent) = await _studentService.CreateStudentAsync(dto);
+            var message = emailSent
+                ? "Student created successfully. Login credentials have been sent to their email."
+                : "Student created successfully, but failed to send credentials email.";
             return StatusCode(StatusCodes.Status201Created, new
             {
-                message = "Student created successfully. Login credentials have been sent to their email.",
-                data    = result
+                message = message,
+                data    = student
             });
         }
         catch (ArgumentException ex)
@@ -182,10 +185,13 @@ public class StudentController : ControllerBase
     {
         try
         {
-            await _studentService.ResetStudentPasswordAsync(id);
+            var (passwordReset, emailSent) = await _studentService.ResetStudentPasswordAsync(id);
+            var message = emailSent
+                ? $"Password for student '{id}' has been reset and sent to their email."
+                : $"Password for student '{id}' has been reset, but failed to send email.";
             return Ok(new
             {
-                message = $"Password for student '{id}' has been reset and sent to their email."
+                message = message
             });
         }
         catch (KeyNotFoundException ex)

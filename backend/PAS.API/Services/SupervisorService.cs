@@ -17,7 +17,7 @@ public class SupervisorService : ISupervisorService
         _emailService = emailService;
     }
 
-    public async Task<SupervisorResponseDto> CreateSupervisorAsync(CreateSupervisorDto dto)
+    public async Task<(SupervisorResponseDto Supervisor, bool EmailSent)> CreateSupervisorAsync(CreateSupervisorDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
             throw new ArgumentException("'Name' is required.");
@@ -50,15 +50,19 @@ public class SupervisorService : ISupervisorService
         _db.Supervisors.Add(new Supervisor { UserId = user.UserId });
         await _db.SaveChangesAsync();
 
+        var emailSent = false;
         try
         {
             await _emailService.SendWelcomeEmailAsync(user.Email, user.Name, plainPassword);
+            emailSent = true;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"[EmailService] Failed to send welcome email to {user.Email}: {ex.Message}");
         }
 
-        return MapToResponse(user.UserId, user.Name, user.Email, user.CreatedAt, dto.Expertise.Trim());
+        var response = MapToResponse(user.UserId, user.Name, user.Email, user.CreatedAt, dto.Expertise.Trim());
+        return (response, emailSent);
     }
 
     public async Task<PagedResultDto<SupervisorResponseDto>> GetAllSupervisorsAsync(int page, int pageSize)
@@ -159,7 +163,7 @@ public class SupervisorService : ISupervisorService
         await _db.SaveChangesAsync();
     }
 
-    public async Task ResetSupervisorPasswordAsync(int userId)
+    public async Task<(bool PasswordReset, bool EmailSent)> ResetSupervisorPasswordAsync(int userId)
     {
         var supervisor = await _db.Supervisors
             .Include(s => s.User)
@@ -173,13 +177,18 @@ public class SupervisorService : ISupervisorService
 
         await _db.SaveChangesAsync();
 
+        var emailSent = false;
         try
         {
             await _emailService.SendAdminPasswordResetEmailAsync(user.Email, user.Name, plainPassword);
+            emailSent = true;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"[EmailService] Failed to send password reset email to {user.Email}: {ex.Message}");
         }
+
+        return (true, emailSent);
     }
 
     private static SupervisorResponseDto MapToResponse(

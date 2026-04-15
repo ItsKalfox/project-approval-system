@@ -22,11 +22,14 @@ public class SupervisorController : ControllerBase
     {
         try
         {
-            var result = await _supervisorService.CreateSupervisorAsync(dto);
+            var (supervisor, emailSent) = await _supervisorService.CreateSupervisorAsync(dto);
+            var message = emailSent
+                ? "Supervisor created successfully. Login credentials have been sent to their email."
+                : "Supervisor created successfully, but failed to send credentials email.";
             return StatusCode(StatusCodes.Status201Created, new
             {
-                message = "Supervisor created successfully. Login credentials have been sent to their email.",
-                data    = result
+                message = message,
+                data    = supervisor
             });
         }
         catch (ArgumentException ex)
@@ -198,10 +201,13 @@ public class SupervisorController : ControllerBase
     {
         try
         {
-            await _supervisorService.ResetSupervisorPasswordAsync(id);
+            var (passwordReset, emailSent) = await _supervisorService.ResetSupervisorPasswordAsync(id);
+            var message = emailSent
+                ? $"Password for supervisor '{id}' has been reset and sent to their email."
+                : $"Password for supervisor '{id}' has been reset, but failed to send email.";
             return Ok(new
             {
-                message = $"Password for supervisor '{id}' has been reset and sent to their email."
+                message = message
             });
         }
         catch (KeyNotFoundException ex)

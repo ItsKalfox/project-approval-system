@@ -5,10 +5,10 @@ namespace PAS.API.Services;
 
 public interface IStudentService
 {
-    Task<StudentResponseDto> CreateStudentAsync(CreateStudentDto dto);
+    Task<(StudentResponseDto Student, bool EmailSent)> CreateStudentAsync(CreateStudentDto dto);
     Task<PagedResultDto<StudentResponseDto>> GetAllStudentsAsync(int page, int pageSize);
     Task<StudentResponseDto> GetStudentAsync(int userId);
     Task<StudentResponseDto> UpdateStudentAsync(int userId, UpdateStudentDto dto);
     Task DeleteStudentAsync(int userId);
-    Task ResetStudentPasswordAsync(int userId);
+    Task<(bool PasswordReset, bool EmailSent)> ResetStudentPasswordAsync(int userId);
 }
