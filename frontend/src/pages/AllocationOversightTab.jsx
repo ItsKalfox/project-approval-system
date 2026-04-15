@@ -7,6 +7,17 @@ export default function AllocationOversightTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
+  const [showIntervention, setShowIntervention] = useState(false);
+  const [interventionMode, setInterventionMode] = useState(false);
+  const [matchedStudents, setMatchedStudents] = useState([]);
+  const [availableProjects, setAvailableProjects] = useState([]);
+  const [availableSupervisors, setAvailableSupervisors] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState('');
+  const [selectedProject, setSelectedProject] = useState('');
+  const [selectedSupervisor, setSelectedSupervisor] = useState('');
+  const [confirmModal, setConfirmModal] = useState({ show: false, studentId: '', studentName: '', projectId: '', projectName: '', supervisorId: '', supervisorName: '' });
+  const [interventionLoading, setInterventionLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ message: '', type: '' });
 
   useEffect(() => {
     fetchAllocations();
@@ -90,6 +101,92 @@ export default function AllocationOversightTab() {
     return statusClasses[status?.toLowerCase()] || 'badge badge-default';
   };
 
+  const openInterventionTools = async () => {
+    setShowIntervention(true);
+    setInterventionMode(true);
+    setInterventionLoading(true);
+    setSnackbar({ message: '', type: '' });
+    const token = localStorage.getItem('pas_token');
+    if (!token) {
+      setError('Not authenticated. Please log in.');
+      setInterventionLoading(false);
+      return;
+    }
+    try {
+      const [studentsRes, projectsRes, supervisorsRes] = await Promise.all([
+        fetch(`${API}/api/allocations/students-with-matches`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API}/api/projects/available`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API}/api/supervisors`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+      const studentsData = studentsRes.ok ? (await studentsRes.json()).data || [] : [];
+      const projectsData = projectsRes.ok ? (await projectsRes.json()).data || [] : [];
+      const supervisorsData = supervisorsRes.ok ? (await supervisorsRes.json()).data || [] : [];
+      setMatchedStudents(studentsData);
+      setAvailableProjects(projectsData);
+      setAvailableSupervisors(supervisorsData);
+    } catch (err) {
+      setSnackbar({ message: 'Failed to load intervention data', type: 'error' });
+    } finally {
+      setInterventionLoading(false);
+    }
+  };
+
+  const handleReassignClick = () => {
+    if (!selectedStudent || !selectedProject || !selectedSupervisor) {
+      setSnackbar({ message: 'Please select student, project, and supervisor', type: 'error' });
+      return;
+    }
+    const student = matchedStudents.find(s => s.id === selectedStudent);
+    const project = availableProjects.find(p => p.id === selectedProject);
+    const supervisor = availableSupervisors.find(s => s.id === selectedSupervisor);
+    setConfirmModal({
+      show: true,
+      studentId: selectedStudent,
+      studentName: student?.name || student?.studentName || 'Unknown',
+      projectId: selectedProject,
+      projectName: project?.name || 'Unknown',
+      supervisorId: selectedSupervisor,
+      supervisorName: supervisor?.name || 'Unknown'
+    });
+  };
+
+  const confirmReassign = async () => {
+    const token = localStorage.getItem('pas_token');
+    if (!token) {
+      setSnackbar({ message: 'Not authenticated', type: 'error' });
+      return;
+    }
+    try {
+      setInterventionLoading(true);
+      const res = await fetch(`${API}/api/allocations/reassign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          studentId: confirmModal.studentId,
+          projectId: confirmModal.projectId,
+          supervisorId: confirmModal.supervisorId
+        })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ message: 'Failed to reassign' }));
+        throw new Error(data.message || 'Failed to reassign');
+      }
+      setSnackbar({ message: 'Project reassigned successfully', type: 'success' });
+      setConfirmModal({ show: false, studentId: '', studentName: '', projectId: '', projectName: '', supervisorId: '', supervisorName: '' });
+      setSelectedStudent('');
+      setSelectedProject('');
+      setSelectedSupervisor('');
+      fetchAllocations();
+    } catch (err) {
+      setSnackbar({ message: err.message, type: 'error' });
+    } finally {
+      setInterventionLoading(false);
+    }
+  };
+
   return (
     <div className="tab-content">
       <div className="dash-card">
@@ -115,8 +212,86 @@ export default function AllocationOversightTab() {
             <button className="btn btn-secondary" onClick={fetchAllocations}>
               Refresh
             </button>
+            <button className="btn btn-primary" onClick={openInterventionTools}>
+              Intervention Tools
+            </button>
           </div>
         </div>
+
+        {snackbar.message && (
+          <div className={`alert alert-${snackbar.type}`} style={{ marginBottom: 16 }}>
+            {snackbar.message}
+          </div>
+        )}
+
+        {showIntervention && (
+          <div className="dash-card" style={{ marginBottom: 24, border: '2px solid #2563eb' }}>
+            <div className="dash-card-header">
+              <div>
+                <div className="dash-card-title">Allocation Intervention Tools</div>
+                <div className="dash-card-subtitle">
+                  Manually intervene or reassign projects if necessary
+                </div>
+              </div>
+              <button className="btn btn-ghost" onClick={() => setShowIntervention(false)}>
+                Close
+              </button>
+            </div>
+            
+            {interventionLoading ? (
+              <div className="loading-state">Loading...</div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 16, alignItems: 'end', padding: '16px 0' }}>
+                <div>
+                  <label className="form-label">Select Student</label>
+                  <select
+                    className="form-input"
+                    value={selectedStudent}
+                    onChange={(e) => setSelectedStudent(e.target.value)}
+                  >
+                    <option value="">-- Select Student --</option>
+                    {matchedStudents.map(s => (
+                      <option key={s.id} value={s.id}>{s.name || s.studentName}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label">Select New Project</label>
+                  <select
+                    className="form-input"
+                    value={selectedProject}
+                    onChange={(e) => setSelectedProject(e.target.value)}
+                  >
+                    <option value="">-- Select Project --</option>
+                    {availableProjects.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label">Select New Supervisor</label>
+                  <select
+                    className="form-input"
+                    value={selectedSupervisor}
+                    onChange={(e) => setSelectedSupervisor(e.target.value)}
+                  >
+                    <option value="">-- Select Supervisor --</option>
+                    {availableSupervisors.map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  className="btn btn-success"
+                  onClick={handleReassignClick}
+                  disabled={!selectedStudent || !selectedProject || !selectedSupervisor}
+                >
+                  ReAssign
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {error && <div className="alert alert-error">{error}</div>}
 
@@ -179,6 +354,43 @@ export default function AllocationOversightTab() {
           </div>
         )}
       </div>
+
+      {confirmModal.show && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <div className="modal-title">Confirm Reassignment</div>
+            </div>
+            <div className="modal-body">
+              <p>Are you sure you want to reassign this project?</p>
+              <div style={{ marginTop: 16, padding: 16, background: '#f3f4f6', borderRadius: 8 }}>
+                <p><strong>Student:</strong> {confirmModal.studentName}</p>
+                <p><strong>New Project:</strong> {confirmModal.projectName}</p>
+                <p><strong>New Supervisor:</strong> {confirmModal.supervisorName}</p>
+              </div>
+              <p style={{ marginTop: 16, color: '#dc2626', fontWeight: 600 }}>
+                This action will override the previous allocation.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn btn-ghost" 
+                onClick={() => setConfirmModal({ ...confirmModal, show: false })}
+                disabled={interventionLoading}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn btn-success" 
+                onClick={confirmReassign}
+                disabled={interventionLoading}
+              >
+                {interventionLoading ? 'Processing...' : 'Confirm ReAssign'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
