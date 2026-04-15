@@ -10,24 +10,37 @@ export default function ResearchAreaManagementTab() {
   const [formData, setFormData] = useState({ name: '' });
   const [saving, setSaving] = useState(false);
 
-  const API = import.meta.env.VITE_API_URL;
+  const API = 'http://localhost:5000';
 
   useEffect(() => {
     fetchAreas();
   }, []);
 
   const fetchAreas = async () => {
+    const token = localStorage.getItem('pas_token');
+    if (!token) {
+      setError('Not authenticated. Please log in.');
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError('');
       const res = await fetch(`${API}/api/research-areas`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to fetch');
+      const text = await res.text();
+      if (!res.ok) {
+        const data = text ? JSON.parse(text) : { message: 'Request failed' };
+        throw new Error(data.message || 'Failed to fetch');
+      }
+      const data = JSON.parse(text);
       setAreas(data.data || []);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to fetch research areas');
     } finally {
       setLoading(false);
     }
@@ -36,6 +49,12 @@ export default function ResearchAreaManagementTab() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
+    
+    const token = localStorage.getItem('pas_token');
+    if (!token) {
+      setError('Not authenticated. Please log in.');
+      return;
+    }
     
     try {
       setSaving(true);
@@ -52,8 +71,11 @@ export default function ResearchAreaManagementTab() {
         },
         body: JSON.stringify(formData),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to save');
+      const text = await res.text();
+      if (!res.ok) {
+        const data = text ? JSON.parse(text) : { message: 'Failed to save' };
+        throw new Error(data.message || 'Failed to save');
+      }
       
       setShowModal(false);
       setEditingArea(null);
@@ -75,13 +97,25 @@ export default function ResearchAreaManagementTab() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this research area?')) return;
     
+    const token = localStorage.getItem('pas_token');
+    if (!token) {
+      setError('Not authenticated. Please log in.');
+      return;
+    }
+    
     try {
       const res = await fetch(`${API}/api/research-areas/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to delete');
+      const text = await res.text();
+      if (!res.ok) {
+        const data = text ? JSON.parse(text) : { message: 'Failed to delete' };
+        throw new Error(data.message || 'Failed to delete');
+      }
       fetchAreas();
     } catch (err) {
       setError(err.message);
