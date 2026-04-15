@@ -1,5 +1,6 @@
 import DashboardShell from './DashboardShell';
 import StudentManagementTab from './StudentManagementTab';
+import SupervisorManagementTab from './SupervisorManagementTab';
 
 const TABS = [
   { id: 'student-mgmt',     label: 'Student Management'        },
@@ -22,15 +23,7 @@ export default function ModuleLeaderDashboard() {
           )}
 
           {activeTab === 'supervisor-mgmt' && (
-            <div className="tab-content">
-              <div className="dash-card">
-                <div className="dash-card-title">👨‍🏫 Supervisor Management</div>
-                <p style={{ color: 'var(--gray-500)', fontSize: 14, lineHeight: 1.7 }}>
-                  Manage supervisor accounts, view their profiles, and oversee their
-                  availability and capacity for student supervision.
-                </p>
-              </div>
-            </div>
+            <SupervisorManagementTab />
           )}
 
           {activeTab === 'research-areas' && (
