@@ -303,7 +303,7 @@ export default function AllocationOversightTab() {
                   </select>
                 </div>
                 <button
-                  className="btn btn-success"
+                  className="btn btn-warning"
                   onClick={handleReassignClick}
                   disabled={!selectedStudent || !selectedProject || !selectedSupervisor}
                 >

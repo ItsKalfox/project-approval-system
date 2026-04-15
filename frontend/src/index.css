@@ -997,6 +997,23 @@ body {
   cursor: not-allowed;
 }
 
+.btn-warning {
+  background: #eab308;
+  color: white;
+  border: none;
+  padding: 11px 20px;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: #ca8a04;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.25);
+}
+
+.btn-warning:disabled {
+  background: #fde047;
+  cursor: not-allowed;
+}
+
 /* ─── Loaders ─────────────────────────────────────────────────────────── */
 .loading-dots {
   display: inline-flex;
