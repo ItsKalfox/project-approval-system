@@ -29,6 +29,7 @@ builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<ISupervisorService, SupervisorService>();
 builder.Services.AddScoped<IResearchAreaService, ResearchAreaService>();
+builder.Services.AddScoped<ICourseworkService, CourseworkService>();
 
 // ── JWT Bearer Authentication ──────────────────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
