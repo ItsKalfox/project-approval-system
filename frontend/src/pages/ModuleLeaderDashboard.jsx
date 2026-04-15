@@ -1,6 +1,7 @@
 import DashboardShell from './DashboardShell';
 import StudentManagementTab from './StudentManagementTab';
 import SupervisorManagementTab from './SupervisorManagementTab';
+import ResearchAreaManagementTab from './ResearchAreaManagementTab';
 
 const TABS = [
   { id: 'student-mgmt',     label: 'Student Management'        },
@@ -26,17 +27,7 @@ export default function ModuleLeaderDashboard() {
             <SupervisorManagementTab />
           )}
 
-          {activeTab === 'research-areas' && (
-            <div className="tab-content">
-              <div className="dash-card">
-                <div className="dash-card-title">🔬 Research Area Management</div>
-                <p style={{ color: 'var(--gray-500)', fontSize: 14, lineHeight: 1.7 }}>
-                  Define and manage the research areas available for student project selection.
-                  Link supervisors to their areas of expertise.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'research-areas' && <ResearchAreaManagementTab />}
 
           {activeTab === 'allocation' && (
             <div className="tab-content">

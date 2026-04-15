@@ -1040,3 +1040,124 @@ body {
 .snackbar.error {
   background: #ef4444;
 }
+
+/* ─── Dashboard Card Header ───────────────────────────────────────────── */
+.dash-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.dash-card-subtitle {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-top: 4px;
+}
+
+/* ─── Area Grid ───────────────────────────────────────────────────── */
+.area-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.area-card {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  transition: all var(--transition);
+}
+
+.area-card:hover {
+  border-color: var(--green-300);
+  box-shadow: var(--shadow-sm);
+}
+
+.area-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.area-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--gray-500);
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.btn-ghost:hover {
+  color: var(--gray-900);
+  background: var(--gray-100);
+}
+
+/* ─── Empty State ─────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--gray-500);
+}
+
+.empty-state p {
+  margin-bottom: 4px;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--gray-500);
+}
+
+/* ─── Modal Overlay ───────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.modal {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  width: 100%;
+  max-width: 400px;
+  padding: 24px;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.btn-secondary {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.btn-secondary:hover {
+  background: var(--gray-200);
+}
