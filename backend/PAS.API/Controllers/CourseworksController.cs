@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PAS.API.DTOs.Coursework;
 using PAS.API.Services;
@@ -16,6 +17,7 @@ public class CourseworksController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "MODULE LEADER")]
     public async Task<ActionResult<IEnumerable<CourseworkResponseDto>>> GetAll()
     {
         var courseworks = await _courseworkService.GetAllAsync();
@@ -23,6 +25,7 @@ public class CourseworksController : ControllerBase
     }
 
     [HttpGet("active")]
+    [Authorize(Roles = "MODULE LEADER,SUPERVISOR")]
     public async Task<ActionResult<IEnumerable<CourseworkResponseDto>>> GetActive()
     {
         var courseworks = await _courseworkService.GetActiveAsync();
@@ -30,6 +33,7 @@ public class CourseworksController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "MODULE LEADER,SUPERVISOR")]
     public async Task<ActionResult<CourseworkResponseDto>> GetById(int id)
     {
         var coursework = await _courseworkService.GetByIdAsync(id);
@@ -39,6 +43,7 @@ public class CourseworksController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "MODULE LEADER")]
     public async Task<ActionResult<CourseworkResponseDto>> Create([FromBody] CreateCourseworkDto dto)
     {
         var userId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
@@ -47,6 +52,7 @@ public class CourseworksController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "MODULE LEADER")]
     public async Task<ActionResult<CourseworkResponseDto>> Update(int id, [FromBody] UpdateCourseworkDto dto)
     {
         var coursework = await _courseworkService.UpdateAsync(id, dto);
@@ -56,6 +62,7 @@ public class CourseworksController : ControllerBase
     }
 
     [HttpPatch("{id}/toggle")]
+    [Authorize(Roles = "MODULE LEADER")]
     public async Task<ActionResult> ToggleActive(int id)
     {
         var result = await _courseworkService.ToggleActiveAsync(id);
@@ -65,6 +72,7 @@ public class CourseworksController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "MODULE LEADER")]
     public async Task<ActionResult> Delete(int id)
     {
         var result = await _courseworkService.DeleteAsync(id);

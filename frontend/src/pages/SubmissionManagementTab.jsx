@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-
-const API = 'http://localhost:5000';
+import api from '../api';
 
 export default function SubmissionManagementTab() {
   const [submissions, setSubmissions] = useState([]);
@@ -21,30 +20,14 @@ export default function SubmissionManagementTab() {
   }, []);
 
   const fetchSubmissions = async () => {
-    const token = localStorage.getItem('pas_token');
-    if (!token) {
-      setError('Not authenticated. Please log in.');
-      setLoading(false);
-      return;
-    }
     try {
       setLoading(true);
       setError('');
-      const res = await fetch(`${API}/api/courseworks`, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-      });
-      const text = await res.text();
-      if (!res.ok) {
-        const data = text ? JSON.parse(text) : { message: 'Request failed' };
-        throw new Error(data.message || 'Failed to fetch');
-      }
-      const data = JSON.parse(text);
-      setSubmissions(data.data || []);
+      const res = await api.get('/courseworks');
+      const submissionsArray = Array.isArray(res.data) ? res.data : (res.data.data || []);
+      setSubmissions(submissionsArray);
     } catch (err) {
-      setError(err.message || 'Failed to fetch submissions');
+      setError(err.response?.data?.message || 'Failed to fetch submissions');
     } finally {
       setLoading(false);
     }
@@ -54,31 +37,12 @@ export default function SubmissionManagementTab() {
     e.preventDefault();
     if (!formData.title.trim()) return;
     
-    const token = localStorage.getItem('pas_token');
-    if (!token) {
-      setError('Not authenticated. Please log in.');
-      return;
-    }
-    
     try {
       setSaving(true);
-      const method = editingSubmission ? 'PUT' : 'POST';
-      const url = editingSubmission
-        ? `${API}/api/courseworks/${editingSubmission.courseworkId}`
-        : `${API}/api/courseworks`;
-      
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-      const text = await res.text();
-      if (!res.ok) {
-        const data = text ? JSON.parse(text) : { message: 'Failed to save' };
-        throw new Error(data.message || 'Failed to save');
+      if (editingSubmission) {
+        await api.put(`/courseworks/${editingSubmission.courseworkId}`, formData);
+      } else {
+        await api.post('/courseworks', formData);
       }
       
       setShowModal(false);
@@ -86,60 +50,29 @@ export default function SubmissionManagementTab() {
       setFormData({ title: '', description: '', deadline: '', isIndividual: true });
       fetchSubmissions();
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || 'Failed to save');
     } finally {
       setSaving(false);
     }
   };
 
   const handleToggleActive = async (submission) => {
-    const token = localStorage.getItem('pas_token');
-    if (!token) {
-      setError('Not authenticated. Please log in.');
-      return;
-    }
-    
     try {
-      const res = await fetch(`${API}/api/courseworks/${submission.courseworkId}/toggle`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (res.ok) {
-        fetchSubmissions();
-      }
+      await api.patch(`/courseworks/${submission.courseworkId}/toggle`);
+      fetchSubmissions();
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || 'Failed to toggle status');
     }
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this submission?')) return;
     
-    const token = localStorage.getItem('pas_token');
-    if (!token) {
-      setError('Not authenticated. Please log in.');
-      return;
-    }
-    
     try {
-      const res = await fetch(`${API}/api/courseworks/${id}`, {
-        method: 'DELETE',
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-      });
-      const text = await res.text();
-      if (!res.ok) {
-        const data = text ? JSON.parse(text) : { message: 'Failed to delete' };
-        throw new Error(data.message || 'Failed to delete');
-      }
+      await api.delete(`/courseworks/${id}`);
       fetchSubmissions();
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || 'Failed to delete');
     }
   };
 
@@ -170,9 +103,14 @@ export default function SubmissionManagementTab() {
               Create and manage student submission tasks (e.g., Final Year Project Proposal)
             </div>
           </div>
-          <button className="btn btn-primary" onClick={openAddModal}>
-            + Create Submission
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-secondary" onClick={fetchSubmissions}>
+              Refresh
+            </button>
+            <button className="btn btn-primary" onClick={openAddModal}>
+              + Create Submission
+            </button>
+          </div>
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
