@@ -2,6 +2,7 @@ import DashboardShell from './DashboardShell';
 import StudentManagementTab from './StudentManagementTab';
 import SupervisorManagementTab from './SupervisorManagementTab';
 import ResearchAreaManagementTab from './ResearchAreaManagementTab';
+import AllocationOversightTab from './AllocationOversightTab';
 
 const TABS = [
   { id: 'student-mgmt',     label: 'Student Management'        },
@@ -29,17 +30,7 @@ export default function ModuleLeaderDashboard() {
 
           {activeTab === 'research-areas' && <ResearchAreaManagementTab />}
 
-          {activeTab === 'allocation' && (
-            <div className="tab-content">
-              <div className="dash-card">
-                <div className="dash-card-title">📊 Allocation Oversight</div>
-                <p style={{ color: 'var(--gray-500)', fontSize: 14, lineHeight: 1.7 }}>
-                  Monitor and manage the allocation of students to supervisors. Review
-                  pending matches and approve or adjust assignments.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'allocation' && <AllocationOversightTab />}
         </>
       )}
     </DashboardShell>
