@@ -40,7 +40,7 @@ export default function SupervisorDashboard() {
           {activeTab === 'browse' && (
             <div className="tab-content">
               <div className="dash-card">
-                <div className="dash-card-title">🔍 Browse Students</div>
+                <div className="dash-card-title">Browse Students</div>
                 <p style={{ color: 'var(--gray-500)', fontSize: 14, lineHeight: 1.7 }}>
                   Browse student project proposals and profiles that have been matched or
                   are awaiting supervisor assignment.
@@ -54,7 +54,7 @@ export default function SupervisorDashboard() {
               <div className="dash-card">
                 <div className="dash-card-header">
                   <div>
-                    <div className="dash-card-title">📝 Submissions</div>
+                    <div className="dash-card-title">Submissions</div>
                     <div className="dash-card-subtitle">
                       View active submission tasks for students
                     </div>
