@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 
 export default function ResearchAreaManagementTab() {
-  const { token } = useAuth();
+  const token = localStorage.getItem('pas_token');
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
