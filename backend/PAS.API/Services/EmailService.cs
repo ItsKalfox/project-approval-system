@@ -1,16 +1,19 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
+using Microsoft.Extensions.Logging;
 
 namespace PAS.API.Services;
 
 public class EmailService : IEmailService
 {
     private readonly IConfiguration _config;
+    private readonly ILogger<EmailService> _logger;
 
-    public EmailService(IConfiguration config)
+    public EmailService(IConfiguration config, ILogger<EmailService> logger)
     {
-        _config = config;
+        _config  = config;
+        _logger = logger;
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -60,17 +63,32 @@ public class EmailService : IEmailService
         var fromName = smtp["FromName"] ?? "PAS System";
         var fromAddr = smtp["FromAddress"] ?? username;
 
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(fromName, fromAddr));
-        message.To.Add(new MailboxAddress(toName, toEmail));
-        message.Subject = subject;
-        message.Body    = new TextPart("html") { Text = html };
+        _logger.LogInformation("Attempting to send email to {Email}", toEmail);
 
-        using var client = new SmtpClient();
-        await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
-        await client.AuthenticateAsync(username, password);
-        await client.SendAsync(message);
-        await client.DisconnectAsync(true);
+        try
+        {
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(fromName, fromAddr));
+            message.To.Add(new MailboxAddress(toName, toEmail));
+            message.Subject = subject;
+            message.Body    = new TextPart("html") { Text = html };
+
+            using var client = new SmtpClient();
+            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+            await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
+            _logger.LogDebug("SMTP connected, attempting auth as {Username}", username);
+            await client.AuthenticateAsync(username, password);
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
+
+            _logger.LogInformation("Email sent successfully to {Email}", toEmail);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send email to {Email}. Error: {Message}", toEmail, ex.Message);
+            Console.WriteLine($"[EMAIL ERROR] Failed to send email to {toEmail}: {ex.Message}");
+            throw;
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────

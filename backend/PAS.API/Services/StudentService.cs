@@ -20,7 +20,7 @@ public class StudentService : IStudentService
     // ─────────────────────────────────────────────────────────────────────
     // POST /api/students — Create student + auto-generate password
     // ─────────────────────────────────────────────────────────────────────
-    public async Task<StudentResponseDto> CreateStudentAsync(CreateStudentDto dto)
+    public async Task<(StudentResponseDto Student, bool EmailSent)> CreateStudentAsync(CreateStudentDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
             throw new ArgumentException("'Name' is required.");
@@ -54,11 +54,20 @@ public class StudentService : IStudentService
         _db.Students.Add(new Student { UserId = user.UserId, Batch = dto.Batch.Trim() });
         await _db.SaveChangesAsync();
 
-        // Email the plain-text password to the student
-        await _emailService.SendWelcomeEmailAsync(user.Email, user.Name, plainPassword);
+        var emailSent = false;
+        try
+        {
+            await _emailService.SendWelcomeEmailAsync(user.Email, user.Name, plainPassword);
+            emailSent = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[EmailService] Failed to send welcome email to {user.Email}: {ex.Message}");
+        }
 
-        return MapToResponse(user.UserId, user.Name, user.Email,
+        var response = MapToResponse(user.UserId, user.Name, user.Email,
                              user.CreatedAt, dto.Batch.Trim());
+        return (response, emailSent);
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -160,7 +169,7 @@ public class StudentService : IStudentService
     // ─────────────────────────────────────────────────────────────────────
     // POST /api/students/{id}/reset-password
     // ─────────────────────────────────────────────────────────────────────
-    public async Task ResetStudentPasswordAsync(int userId)
+    public async Task<(bool PasswordReset, bool EmailSent)> ResetStudentPasswordAsync(int userId)
     {
         var student = await _db.Students
             .Include(s => s.User)
@@ -175,8 +184,18 @@ public class StudentService : IStudentService
 
         await _db.SaveChangesAsync();
 
-        // Send new password to student's email
-        await _emailService.SendAdminPasswordResetEmailAsync(user.Email, user.Name, plainPassword);
+        var emailSent = false;
+        try
+        {
+            await _emailService.SendAdminPasswordResetEmailAsync(user.Email, user.Name, plainPassword);
+            emailSent = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[EmailService] Failed to send password reset email to {user.Email}: {ex.Message}");
+        }
+
+        return (true, emailSent);
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────

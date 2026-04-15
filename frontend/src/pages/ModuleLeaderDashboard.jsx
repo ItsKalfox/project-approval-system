@@ -1,11 +1,16 @@
 import DashboardShell from './DashboardShell';
 import StudentManagementTab from './StudentManagementTab';
+import SupervisorManagementTab from './SupervisorManagementTab';
+import ResearchAreaManagementTab from './ResearchAreaManagementTab';
+import AllocationOversightTab from './AllocationOversightTab';
+import SubmissionManagementTab from './SubmissionManagementTab';
 
 const TABS = [
   { id: 'student-mgmt',     label: 'Student Management'        },
   { id: 'supervisor-mgmt',  label: 'Supervisor Management'     },
   { id: 'research-areas',   label: 'Research Area Management'  },
   { id: 'allocation',       label: 'Allocation Oversight'      },
+  { id: 'submissions',      label: 'Create Submission'         },
 ];
 
 export default function ModuleLeaderDashboard() {
@@ -22,40 +27,14 @@ export default function ModuleLeaderDashboard() {
           )}
 
           {activeTab === 'supervisor-mgmt' && (
-            <div className="tab-content">
-              <div className="dash-card">
-                <div className="dash-card-title">👨‍🏫 Supervisor Management</div>
-                <p style={{ color: 'var(--gray-500)', fontSize: 14, lineHeight: 1.7 }}>
-                  Manage supervisor accounts, view their profiles, and oversee their
-                  availability and capacity for student supervision.
-                </p>
-              </div>
-            </div>
+            <SupervisorManagementTab />
           )}
 
-          {activeTab === 'research-areas' && (
-            <div className="tab-content">
-              <div className="dash-card">
-                <div className="dash-card-title">🔬 Research Area Management</div>
-                <p style={{ color: 'var(--gray-500)', fontSize: 14, lineHeight: 1.7 }}>
-                  Define and manage the research areas available for student project selection.
-                  Link supervisors to their areas of expertise.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'research-areas' && <ResearchAreaManagementTab />}
 
-          {activeTab === 'allocation' && (
-            <div className="tab-content">
-              <div className="dash-card">
-                <div className="dash-card-title">📊 Allocation Oversight</div>
-                <p style={{ color: 'var(--gray-500)', fontSize: 14, lineHeight: 1.7 }}>
-                  Monitor and manage the allocation of students to supervisors. Review
-                  pending matches and approve or adjust assignments.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'allocation' && <AllocationOversightTab />}
+
+          {activeTab === 'submissions' && <SubmissionManagementTab />}
         </>
       )}
     </DashboardShell>
