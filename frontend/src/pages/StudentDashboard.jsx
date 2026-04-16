@@ -1,5 +1,6 @@
 import DashboardShell from './DashboardShell';
 import StudentSubmissionTab from './StudentSubmissionTab';
+import StudentProjectTab from './StudentProjectTab';
 
 const TABS = [
   { id: 'my-project',  label: 'My Project'  },
@@ -16,15 +17,7 @@ export default function StudentDashboard() {
       {({ activeTab }) => (
         <>
           {activeTab === 'my-project' && (
-            <div className="tab-content">
-              <div className="dash-card">
-                <div className="dash-card-title">📁 My Project</div>
-                <p style={{ color: 'var(--gray-500)', fontSize: 14, lineHeight: 1.7 }}>
-                  Your assigned project details, supervisor information, and group members
-                  will appear here once configured.
-                </p>
-              </div>
-            </div>
+            <StudentProjectTab />
           )}
 
           {activeTab === 'submission' && (
