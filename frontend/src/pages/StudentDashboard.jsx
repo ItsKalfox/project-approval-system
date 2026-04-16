@@ -1,4 +1,5 @@
 import DashboardShell from './DashboardShell';
+import StudentSubmissionTab from './StudentSubmissionTab';
 
 const TABS = [
   { id: 'my-project',  label: 'My Project'  },
@@ -27,15 +28,7 @@ export default function StudentDashboard() {
           )}
 
           {activeTab === 'submission' && (
-            <div className="tab-content">
-              <div className="dash-card">
-                <div className="dash-card-title">📤 Submission Portal</div>
-                <p style={{ color: 'var(--gray-500)', fontSize: 14, lineHeight: 1.7 }}>
-                  Upload and manage your project deliverables, reports, and milestone
-                  submissions here.
-                </p>
-              </div>
-            </div>
+            <StudentSubmissionTab />
           )}
         </>
       )}

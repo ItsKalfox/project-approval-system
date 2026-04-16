@@ -1257,3 +1257,491 @@ body {
   margin-top: 8px;
   font-style: italic;
 }
+
+/* ═════════════════════════════════════════════════════════════════════════
+   Student Submission Tab Styles
+   ═════════════════════════════════════════════════════════════════════════ */
+
+/* ── Submission Points Grid ────────────────────────────────────────────── */
+.sub-points-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.sub-point-card {
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.sub-point-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--green-500);
+  transition: width var(--transition);
+}
+
+.sub-point-card:hover {
+  border-color: var(--green-400, #4ade80);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.sub-point-card:hover::before {
+  width: 6px;
+}
+
+.sub-point-card.deadline-passed {
+  opacity: 0.75;
+}
+
+.sub-point-card.deadline-passed::before {
+  background: var(--gray-400);
+}
+
+.sub-point-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.sub-point-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gray-900);
+  line-height: 1.3;
+}
+
+.sub-point-desc {
+  font-size: 13px;
+  color: var(--gray-500);
+  line-height: 1.5;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sub-point-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--gray-100);
+}
+
+/* ── Deadline Chip ─────────────────────────────────────────────────────── */
+.sub-deadline-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.sub-deadline-chip.passed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ── Status Badge ──────────────────────────────────────────────────────── */
+.sub-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sub-status-badge.open {
+  background: var(--green-100);
+  color: var(--green-700);
+}
+
+.sub-status-badge.submitted {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.sub-status-badge.closed {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.sub-status-badge.draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* ── Detail View ───────────────────────────────────────────────────────── */
+.sub-detail-header {
+  margin-bottom: 20px;
+}
+
+.sub-detail-banner {
+  background: linear-gradient(135deg, var(--green-50) 0%, #f0f9ff 100%);
+  border: 1px solid var(--green-200);
+  border-radius: var(--radius-sm);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+.sub-detail-cw-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0 0 6px 0;
+}
+
+.sub-detail-cw-desc {
+  font-size: 14px;
+  color: var(--gray-500);
+  line-height: 1.5;
+  margin: 0 0 12px 0;
+}
+
+.sub-detail-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Submission Detail Card ────────────────────────────────────────────── */
+.sub-detail-content {
+  animation: slideUp 0.2s ease;
+}
+
+.sub-detail-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  padding: 24px;
+}
+
+.sub-detail-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.sub-detail-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.sub-detail-section {
+  margin-bottom: 16px;
+}
+
+.sub-detail-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.sub-detail-text {
+  font-size: 14px;
+  color: var(--gray-700);
+  line-height: 1.7;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.sub-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--gray-50);
+  border-radius: var(--radius-sm);
+}
+
+.sub-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sub-detail-item-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sub-detail-item-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-900);
+}
+
+.sub-file-link {
+  color: var(--green-600) !important;
+  transition: color var(--transition);
+}
+
+.sub-file-link:hover {
+  color: var(--green-700) !important;
+  text-decoration: underline;
+}
+
+.sub-file-size-inline {
+  font-size: 12px;
+  color: var(--gray-500);
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.sub-detail-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gray-100);
+  flex-wrap: wrap;
+}
+
+/* ── Empty state ───────────────────────────────────────────────────────── */
+.sub-empty-state {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.sub-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.sub-empty-state h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 8px;
+}
+
+.sub-empty-state p {
+  font-size: 14px;
+  color: var(--gray-500);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.sub-closed-msg {
+  color: #991b1b !important;
+  font-weight: 500;
+}
+
+/* ── Form ──────────────────────────────────────────────────────────────── */
+.sub-form-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.sub-form-heading {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.sub-point-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--green-50);
+  border: 1px solid var(--green-200);
+  border-radius: var(--radius-sm);
+  margin-bottom: 24px;
+}
+
+.sub-point-banner-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--green-700);
+}
+
+.sub-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sub-select {
+  appearance: auto;
+  cursor: pointer;
+}
+
+.sub-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gray-100);
+}
+
+/* ── File Drop Zone ────────────────────────────────────────────────────── */
+.sub-file-drop {
+  border: 2px dashed var(--gray-200);
+  border-radius: var(--radius-sm);
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  background: var(--gray-50);
+}
+
+.sub-file-drop:hover,
+.sub-file-drop.dragover {
+  border-color: var(--green-500);
+  background: var(--green-50);
+}
+
+.sub-file-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--gray-500);
+  font-size: 14px;
+}
+
+.sub-file-hint {
+  font-size: 12px;
+  color: var(--gray-400);
+}
+
+.sub-file-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.sub-file-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.sub-file-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-900);
+  word-break: break-all;
+}
+
+.sub-file-size {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.sub-file-remove {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--gray-400);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all var(--transition);
+}
+
+.sub-file-remove:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+/* ── PDF Viewer ────────────────────────────────────────────────────────── */
+.sub-pdf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.sub-pdf-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.sub-pdf-iframe {
+  width: 100%;
+  height: calc(100vh - 220px);
+  min-height: 500px;
+  border: none;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sub-points-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sub-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sub-point-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sub-detail-actions {
+    flex-direction: column;
+  }
+
+  .sub-detail-actions .btn {
+    width: 100%;
+  }
+
+  .sub-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .sub-form-actions .btn {
+    width: 100%;
+  }
+}
