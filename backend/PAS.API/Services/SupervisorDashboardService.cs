@@ -203,7 +203,8 @@ public async Task<IEnumerable<RevealedProjectDto>> GetMatchedProjectsWithStudent
             AlreadyExpressedInterest = true,
             StudentName              = m.Project.Group != null && m.Project.Group.Leader != null ? m.Project.Group.Leader.User.Name : string.Empty,
             StudentEmail             = m.Project.Group != null && m.Project.Group.Leader != null ? m.Project.Group.Leader.User.Email : string.Empty,
-            StudentBatch             = m.Project.Group != null && m.Project.Group.Leader != null ? m.Project.Group.Leader.Batch : string.Empty
+            StudentBatch             = m.Project.Group != null && m.Project.Group.Leader != null ? m.Project.Group.Leader.Batch : string.Empty,
+            MatchedAt                = m.MatchDate
         })
         .ToListAsync();
 }
