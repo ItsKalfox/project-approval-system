@@ -40,6 +40,16 @@ public class SubmissionResponseDto
     public string SubmittedByName { get; set; } = string.Empty;
     public DateTime? Deadline { get; set; }
     public bool IsIndividual { get; set; }
+
+    // Matching details
+    public MatchedSupervisorDto? MatchedSupervisor { get; set; }
+}
+
+public class MatchedSupervisorDto
+{
+    public int UserId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
 }
 
 public class SubmissionPointDto

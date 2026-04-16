@@ -71,6 +71,37 @@ public class SubmissionController : ControllerBase
     }
 
     // ─────────────────────────────────────────────────────────────────────
+    // GET /api/submissions/my-submissions
+    // List all submissions for the logged-in student
+    // ─────────────────────────────────────────────────────────────────────
+    [HttpGet("my-submissions")]
+    public async Task<IActionResult> GetMySubmissions()
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var submissions = await _submissionService.GetStudentSubmissionsAsync(userId);
+            return Ok(new
+            {
+                message = "Student submissions retrieved successfully.",
+                data    = submissions
+            });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                message = "An unexpected error occurred.",
+                detail  = ex.Message
+            });
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
     // GET /api/submissions/research-areas
     // Research areas for the dropdown selection
     // ─────────────────────────────────────────────────────────────────────

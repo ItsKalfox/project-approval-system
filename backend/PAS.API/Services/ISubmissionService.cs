@@ -16,6 +16,12 @@ public interface ISubmissionService
     Task<SubmissionResponseDto?> GetMySubmissionAsync(int studentUserId, int courseworkId);
 
     /// <summary>
+    /// Returns all project submissions made by the student.
+    /// Includes statuses, deadlines, and supervisor matching if available.
+    /// </summary>
+    Task<IEnumerable<SubmissionResponseDto>> GetStudentSubmissionsAsync(int studentUserId);
+
+    /// <summary>
     /// Creates a new submission (Project + CourseworkProject link + Blob upload).
     /// </summary>
     Task<SubmissionResponseDto> CreateSubmissionAsync(

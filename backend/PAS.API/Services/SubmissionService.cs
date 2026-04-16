@@ -17,6 +17,34 @@ public class SubmissionService : ISubmissionService
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // GET  /api/submissions/my-submissions
+    // Returns all submissions made by the student
+    // ─────────────────────────────────────────────────────────────────────────
+    public async Task<IEnumerable<SubmissionResponseDto>> GetStudentSubmissionsAsync(int studentUserId)
+    {
+        // Fetch all projects where the student is the leader
+        var courseworkProjects = await _db.CourseworkProjects
+            .Include(cp => cp.Coursework)
+            .Include(cp => cp.Project)
+                .ThenInclude(p => p.ResearchArea)
+            .Include(cp => cp.Project)
+                .ThenInclude(p => p.Group)
+                    .ThenInclude(g => g!.Leader)
+                        .ThenInclude(s => s!.User)
+            .Include(cp => cp.Project)
+                .ThenInclude(p => p.Match)
+                    .ThenInclude(m => m!.Supervisor)
+                        .ThenInclude(s => s.User)
+            .Where(cp => !cp.Project.IsDeleted
+                         && cp.Project.Group != null
+                         && cp.Project.Group.LeaderId == studentUserId)
+            .OrderByDescending(cp => cp.Project.SubmittedAt)
+            .ToListAsync();
+
+        return courseworkProjects.Select(cp => MapToResponse(cp.Project, cp.Coursework));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // GET  /api/submissions/submission-points
     // Returns active courseworks with open deadlines for the student
     // ─────────────────────────────────────────────────────────────────────────
@@ -365,7 +393,15 @@ public class SubmissionService : ISubmissionService
                                ?? project.Group?.Leader?.User.Name
                                ?? string.Empty,
             Deadline         = coursework.Deadline,
-            IsIndividual     = coursework.IsIndividual
+            IsIndividual     = coursework.IsIndividual,
+
+            // Map supervisor if matched
+            MatchedSupervisor = project.Match != null ? new MatchedSupervisorDto
+            {
+                UserId = project.Match.SupervisorId,
+                Name   = project.Match.Supervisor?.User?.Name ?? "Matched Supervisor",
+                Email  = project.Match.Supervisor?.User?.Email ?? string.Empty
+            } : null
         };
     }
 }

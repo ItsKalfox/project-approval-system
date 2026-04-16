@@ -45,4 +45,6 @@ public class Project
     public Group? Group { get; set; }
 
     public bool Interested { get; set; } = false;
-}
+
+    public Match? Match { get; set; }
+}
