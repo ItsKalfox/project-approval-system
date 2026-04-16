@@ -43,24 +43,24 @@ public class SupervisorLookupController : ControllerBase
     }
 
     [HttpGet("research-areas")]
-    public async Task<IActionResult> GetResearchAreas()
+public async Task<IActionResult> GetResearchAreas()
+{
+    try
     {
-        try
-        {
-            var areas = await _db.ResearchAreas
-                .OrderBy(r => r.Name)
-                .Select(r => new
-                {
-                    r.Id,
-                    r.Name
-                })
-                .ToListAsync();
+        var areas = await _db.ResearchAreas
+            .OrderBy(r => r.Name)
+            .Select(r => new
+            {
+                ResearchAreaId = r.Id,
+                r.Name
+            })
+            .ToListAsync();
 
-            return Ok(new { message = "Research areas retrieved.", data = areas });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = "Unexpected error.", detail = ex.Message });
-        }
+        return Ok(new { message = "Research areas retrieved.", data = areas });
     }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { message = "Unexpected error.", detail = ex.Message });
+    }
+}
 }

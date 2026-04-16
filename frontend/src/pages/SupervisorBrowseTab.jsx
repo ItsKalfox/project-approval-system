@@ -1,30 +1,71 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../api';
 
 export default function SupervisorBrowseTab() {
-  const [projects, setProjects]       = useState([]);
-  const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState('');
-  const [selected, setSelected]       = useState(null);
-  const [pdfUrl, setPdfUrl]           = useState(null);
-  const [pdfLoading, setPdfLoading]   = useState(false);
-  const [interestMap, setInterestMap] = useState({});
+  const [courseworks, setCourseworks]               = useState([]);
+  const [researchAreas, setResearchAreas]           = useState([]);
+  const [selectedCoursework, setSelectedCoursework] = useState(null);
+  const [projects, setProjects]                     = useState([]);
+  const [selectedArea, setSelectedArea]             = useState('');
+  const [loadingCW, setLoadingCW]                   = useState(false);
+  const [loadingProjects, setLoadingProjects]       = useState(false);
+  const [error, setError]                           = useState('');
+  const [selected, setSelected]                     = useState(null);
+  const [pdfUrl, setPdfUrl]                         = useState(null);
+  const [pdfLoading, setPdfLoading]                 = useState(false);
+  const [interestMap, setInterestMap]               = useState({});
 
-  const fetchProjects = useCallback(async () => {
-    setLoading(true);
+  useEffect(() => {
+    const fetchLookups = async () => {
+      setLoadingCW(true);
+      try {
+        const [cwRes, raRes] = await Promise.all([
+          api.get('/supervisor/lookup/courseworks'),
+          api.get('/supervisor/lookup/research-areas')
+        ]);
+        setCourseworks(cwRes.data.data ?? []);
+        setResearchAreas(raRes.data.data ?? []);
+      } catch {
+        setError('Failed to load courseworks.');
+      } finally {
+        setLoadingCW(false);
+      }
+    };
+    fetchLookups();
+  }, []);
+
+  const loadProjects = async (coursework, areaId = '') => {
+    setLoadingProjects(true);
     setError('');
     try {
-      const res  = await api.get('/supervisor/dashboard/projects');
+      const url = areaId
+        ? `/supervisor/dashboard/projects?courseworkId=${coursework.courseworkId}&researchAreaId=${areaId}`
+        : `/supervisor/dashboard/projects?courseworkId=${coursework.courseworkId}`;
+      const res  = await api.get(url);
       const data = Array.isArray(res.data) ? res.data : (res.data.data ?? []);
       setProjects(data);
     } catch {
-      setError('Failed to load projects. Please try again.');
+      setError('Failed to load projects.');
     } finally {
-      setLoading(false);
+      setLoadingProjects(false);
     }
-  }, []);
+  };
 
-  useEffect(() => { fetchProjects(); }, [fetchProjects]);
+  const openCoursework = (coursework) => {
+    setSelectedCoursework(coursework);
+    setSelectedArea('');
+    setProjects([]);
+    loadProjects(coursework);
+  };
+
+  const backToCourseworks = () => {
+    setSelectedCoursework(null);
+    setProjects([]);
+    setSelectedArea('');
+    setSelected(null);
+    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    setPdfUrl(null);
+  };
 
   const openProject = (project) => {
     setSelected(project);
@@ -109,29 +150,126 @@ export default function SupervisorBrowseTab() {
     );
   };
 
+  const InterestStatus = ({ project }) => {
+    if (project.alreadyExpressedInterest && interestMap[project.projectId] !== 'idle') {
+      return <span className="interest-status matched">✓ Matched</span>;
+    }
+    return <span className="interest-status pending">Pending</span>;
+  };
+
+  // ── Coursework cards view ──────────────────────────────────────
+  if (!selectedCoursework) {
+    return (
+      <div className="tab-content">
+        <div className="dash-card">
+          <div className="dash-card-header">
+            <div>
+              <div className="dash-card-title">Browse Proposals</div>
+              <div className="dash-card-subtitle">
+                Select a coursework to view its submitted proposals.
+              </div>
+            </div>
+          </div>
+
+          {error && <div className="alert alert-error">{error}</div>}
+          {loadingCW && <div className="loading-state">Loading courseworks…</div>}
+
+          {!loadingCW && courseworks.length === 0 && !error && (
+            <div className="empty-state"><p>No courseworks available.</p></div>
+          )}
+
+          {!loadingCW && courseworks.length > 0 && (
+            <div className="project-grid">
+              {courseworks.map(c => (
+                <div
+                  key={c.courseworkId}
+                  className="coursework-card"
+                  onClick={() => openCoursework(c)}
+                >
+                  <div className="coursework-card-title">{c.title}</div>
+                  {c.description && (
+                    <div className="coursework-card-desc">{c.description}</div>
+                  )}
+                  <div className="coursework-card-footer">
+                    {c.deadline && (
+                      <span className="project-date">
+                        Deadline: {new Date(c.deadline).toLocaleDateString()}
+                      </span>
+                    )}
+                    <span className="coursework-type-badge">
+                      {c.isIndividual ? 'Individual' : 'Group'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+  // ── Projects panel view ────────────────────────────────────────
   return (
     <div className="tab-content">
       <div className="dash-card">
         <div className="dash-card-header">
           <div>
-            <div className="dash-card-title">Browse Proposals</div>
+            <button className="btn-back" onClick={backToCourseworks}>
+              ← Back to Courseworks
+            </button>
+            <div className="dash-card-title" style={{ marginTop: 8 }}>
+              {selectedCoursework.title}
+            </div>
             <div className="dash-card-subtitle">
               Student identities are hidden until a match is confirmed.
             </div>
           </div>
-          <button className="btn btn-secondary" onClick={fetchProjects} disabled={loading}>
-            {loading ? 'Refreshing…' : 'Refresh'}
+          <button
+            className="btn btn-secondary"
+            onClick={() => loadProjects(selectedCoursework, selectedArea)}
+            disabled={loadingProjects}
+          >
+            {loadingProjects ? 'Refreshing…' : 'Refresh'}
           </button>
         </div>
 
-        {error && <div className="alert alert-error">{error}</div>}
-        {loading && <div className="loading-state">Loading proposals…</div>}
+        {/* Research Area Filters */}
+        <div className="filter-bar">
+          <button
+            className={`filter-btn ${selectedArea === '' ? 'active' : ''}`}
+            onClick={() => { setSelectedArea(''); loadProjects(selectedCoursework); }}
+          >
+            All
+          </button>
+          {researchAreas.map(area => (
+            <button
+              key={area.researchAreaId}
+              className={`filter-btn ${selectedArea === String(area.researchAreaId) ? 'active' : ''}`}
+              onClick={() => {
+  if (selectedArea === String(area.researchAreaId)) {
+    setSelectedArea('');
+    loadProjects(selectedCoursework);
+  } else {
+    setSelectedArea(String(area.researchAreaId));
+    loadProjects(selectedCoursework, area.researchAreaId);
+  }
+}}
+            >
+              {area.name}
+            </button>
+          ))}
+        </div>
 
-        {!loading && !error && projects.length === 0 && (
-          <div className="empty-state"><p>No submitted proposals available right now.</p></div>
+        {error && <div className="alert alert-error">{error}</div>}
+        {loadingProjects && <div className="loading-state">Loading proposals…</div>}
+
+        {!loadingProjects && !error && projects.length === 0 && (
+          <div className="empty-state">
+            <p>No submitted proposals found{selectedArea ? ' for this research area' : ''}.</p>
+          </div>
         )}
 
-        {!loading && projects.length > 0 && (
+        {!loadingProjects && projects.length > 0 && (
           <div className="project-grid">
             {projects.map(p => (
               <div key={p.projectId} className="project-card" onClick={() => openProject(p)}>
@@ -147,11 +285,7 @@ export default function SupervisorBrowseTab() {
                   <div className="project-card-stack"><strong>Stack:</strong> {p.technicalStack}</div>
                 )}
                 <div className="project-card-footer">
-                  {p.submittedAt && (
-                    <span className="project-date">
-                      {new Date(p.submittedAt).toLocaleDateString()}
-                    </span>
-                  )}
+                  <InterestStatus project={p} />
                   <InterestButton project={p} />
                 </div>
               </div>
@@ -160,6 +294,7 @@ export default function SupervisorBrowseTab() {
         )}
       </div>
 
+      {/* Project Detail Modal */}
       {selected && (
         <div className="modal-overlay" onClick={closeProject}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
@@ -190,6 +325,10 @@ export default function SupervisorBrowseTab() {
                   <p>{selected.technicalStack}</p>
                 </section>
               )}
+              <section className="modal-section">
+                <h4>Interest Status</h4>
+                <InterestStatus project={selected} />
+              </section>
               {selected.hasProposalPdf && (
                 <section className="modal-section">
                   <h4>Proposal PDF</h4>

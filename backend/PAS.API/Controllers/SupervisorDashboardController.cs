@@ -18,19 +18,21 @@ public class SupervisorDashboardController : ControllerBase
     }
 
     [HttpGet("projects")]
-    public async Task<IActionResult> GetAvailableProjects()
+public async Task<IActionResult> GetAvailableProjects(
+    [FromQuery] int courseworkId,
+    [FromQuery] int? researchAreaId)
+{
+    try
     {
-        try
-        {
-            var userId   = GetCurrentUserId();
-            var projects = await _service.GetAvailableProjectsAsync(userId);
-            return Ok(new { message = "Projects retrieved.", data = projects });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = "Unexpected error.", detail = ex.Message });
-        }
+        var userId   = GetCurrentUserId();
+        var projects = await _service.GetAvailableProjectsAsync(userId, courseworkId, researchAreaId);
+        return Ok(new { message = "Projects retrieved.", data = projects });
     }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { message = "Unexpected error.", detail = ex.Message });
+    }
+}
 
     [HttpGet("projects/{id:int}/proposal")]
     public async Task<IActionResult> GetProposalPdf(int id)
