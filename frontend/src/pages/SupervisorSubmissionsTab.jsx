@@ -23,7 +23,7 @@ export default function SupervisorSubmissionsTab() {
       setPendingReviews(subRes.data.data?.pendingReviews ?? []);
       const map = {};
       for (const p of (revealRes.data.data ?? [])) {
-        map[p.projectId] = { studentName: p.studentName, studentEmail: p.studentEmail, studentBatch: p.studentBatch };
+        map[p.projectId] = { studentName: p.studentName, studentEmail: p.studentEmail, studentBatch: p.studentBatch, matchedAt: p.matchedAt };
       }
       setRevealMap(map);
     } catch {
@@ -105,6 +105,11 @@ export default function SupervisorSubmissionsTab() {
             <div style={{ fontSize: 13, color: '#6366f1' }}>{student.studentEmail}</div>
             {student.studentBatch && (
               <div style={{ fontSize: 12, color: '#64748b' }}>Batch: {student.studentBatch}</div>
+            )}
+            {student.matchedAt && (
+              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+                Matched on {new Date(student.matchedAt).toLocaleDateString()}
+              </div>
             )}
             <button
               onClick={() => setFlipped(false)}
