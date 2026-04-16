@@ -4,6 +4,7 @@ import api from '../api';
 export default function SupervisorSubmissionsTab() {
   const [matchedProjects, setMatchedProjects] = useState([]);
   const [pendingReviews, setPendingReviews]   = useState([]);
+  const [revealMap, setRevealMap]             = useState({});
   const [loading, setLoading]                 = useState(false);
   const [error, setError]                     = useState('');
   const [selected, setSelected]               = useState(null);
@@ -14,9 +15,17 @@ export default function SupervisorSubmissionsTab() {
     setLoading(true);
     setError('');
     try {
-      const res = await api.get('/supervisor/dashboard/submissions');
-      setMatchedProjects(res.data.data?.matchedProjects ?? []);
-      setPendingReviews(res.data.data?.pendingReviews ?? []);
+      const [subRes, revealRes] = await Promise.all([
+        api.get('/supervisor/dashboard/submissions'),
+        api.get('/supervisor/dashboard/matched-revealed'),
+      ]);
+      setMatchedProjects(subRes.data.data?.matchedProjects ?? []);
+      setPendingReviews(subRes.data.data?.pendingReviews ?? []);
+      const map = {};
+      for (const p of (revealRes.data.data ?? [])) {
+        map[p.projectId] = { studentName: p.studentName, studentEmail: p.studentEmail, studentBatch: p.studentBatch };
+      }
+      setRevealMap(map);
     } catch {
       setError('Failed to load submissions.');
     } finally {
@@ -51,6 +60,62 @@ export default function SupervisorSubmissionsTab() {
     } finally {
       setPdfLoading(false);
     }
+  };
+
+  const RevealCard = ({ student }) => {
+    const [flipped, setFlipped] = useState(false);
+    return (
+      <div style={{ perspective: 800, marginTop: 8 }}>
+        <div style={{
+          width: '100%', height: 110, position: 'relative',
+          transformStyle: 'preserve-3d',
+          transition: 'transform 0.6s cubic-bezier(.4,2,.6,1)',
+          transform: flipped ? 'rotateY(180deg)' : 'none',
+        }}>
+          {/* Front */}
+          <div style={{
+            position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
+            background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+            borderRadius: 10, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 6, color: '#fff',
+          }}>
+            <span style={{ fontSize: 26 }}>🎊</span>
+            <span style={{ fontWeight: 700, fontSize: 14 }}>Student Identity Revealed!</span>
+            <button
+              onClick={() => setFlipped(true)}
+              style={{
+                marginTop: 4, padding: '4px 16px', borderRadius: 20,
+                border: '1.5px solid #fff', background: 'transparent',
+                color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+              }}
+            >
+              Tap to reveal
+            </button>
+          </div>
+          {/* Back */}
+          <div style={{
+            position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            background: '#fff', border: '1.5px solid #e2e8f0',
+            borderRadius: 10, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 4,
+          }}>
+            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, color: '#94a3b8' }}>Your Student</div>
+            <div style={{ fontWeight: 700, fontSize: 16, color: '#1e293b' }}>{student.studentName}</div>
+            <div style={{ fontSize: 13, color: '#6366f1' }}>{student.studentEmail}</div>
+            {student.studentBatch && (
+              <div style={{ fontSize: 12, color: '#64748b' }}>Batch: {student.studentBatch}</div>
+            )}
+            <button
+              onClick={() => setFlipped(false)}
+              style={{ marginTop: 6, background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 11 }}
+            >
+              Flip Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const ProjectCard = ({ project, badge }) => (
@@ -114,7 +179,12 @@ export default function SupervisorSubmissionsTab() {
               ) : (
                 <div className="project-grid">
                   {matchedProjects.map(p => (
-                    <ProjectCard key={p.projectId} project={p} />
+                    <div key={p.projectId}>
+                      <ProjectCard project={p} />
+                      {revealMap[p.projectId] && (
+                        <RevealCard student={revealMap[p.projectId]} />
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
