@@ -84,4 +84,26 @@ public class SupervisorDashboardController : ControllerBase
             ?? throw new UnauthorizedAccessException("User ID not in token.");
         return int.Parse(claim);
     }
+    [HttpDelete("projects/{id:int}/interest")]
+public async Task<IActionResult> WithdrawInterest(int id)
+{
+    try
+    {
+        var userId = GetCurrentUserId();
+        await _service.WithdrawInterestAsync(userId, id);
+        return Ok(new { message = "Interest withdrawn successfully." });
+    }
+    catch (KeyNotFoundException ex)
+    {
+        return NotFound(new { message = ex.Message });
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Conflict(new { message = ex.Message });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { message = "Unexpected error.", detail = ex.Message });
+    }
+}
 }

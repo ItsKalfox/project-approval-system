@@ -63,28 +63,47 @@ public class SupervisorDashboardService : ISupervisorDashboardService
     }
 
     public async Task ExpressInterestAsync(int supervisorUserId, int projectId)
+{
+    var project = await _db.Projects
+        .FirstOrDefaultAsync(p => p.ProjectId == projectId && !p.IsDeleted)
+        ?? throw new KeyNotFoundException($"Project {projectId} not found.");
+
+    if (project.Status != "Submitted")
+        throw new InvalidOperationException("Interest can only be expressed on submitted projects.");
+
+    var alreadyExists = await _db.Interests
+        .AnyAsync(i => i.SupervisorId == supervisorUserId && i.ProjectId == projectId);
+
+    if (alreadyExists)
+        throw new InvalidOperationException("You have already expressed interest in this project.");
+
+    _db.Interests.Add(new Interest
     {
-        var project = await _db.Projects
-            .FirstOrDefaultAsync(p => p.ProjectId == projectId && !p.IsDeleted)
-            ?? throw new KeyNotFoundException($"Project {projectId} not found.");
+        SupervisorId = supervisorUserId,
+        ProjectId    = projectId,
+        Status       = "Matched",
+        CreatedAt    = DateTime.UtcNow
+    });
 
-        if (project.Status != "Submitted")
-            throw new InvalidOperationException("Interest can only be expressed on submitted projects.");
+    project.Status = "Matched";
 
-        var alreadyExists = await _db.Interests
-            .AnyAsync(i => i.SupervisorId == supervisorUserId && i.ProjectId == projectId);
+    await _db.SaveChangesAsync();
+    
+}
+public async Task WithdrawInterestAsync(int supervisorUserId, int projectId)
+{
+    var interest = await _db.Interests
+        .FirstOrDefaultAsync(i => i.SupervisorId == supervisorUserId && i.ProjectId == projectId)
+        ?? throw new KeyNotFoundException("No interest record found for this project.");
 
-        if (alreadyExists)
-            throw new InvalidOperationException("You have already expressed interest in this project.");
+    var project = await _db.Projects
+        .FirstOrDefaultAsync(p => p.ProjectId == projectId && !p.IsDeleted)
+        ?? throw new KeyNotFoundException($"Project {projectId} not found.");
 
-        _db.Interests.Add(new Interest
-        {
-            SupervisorId = supervisorUserId,
-            ProjectId    = projectId,
-            Status       = "pending",
-            CreatedAt    = DateTime.UtcNow
-        });
+    _db.Interests.Remove(interest);
+    project.Status = "Submitted";
 
-        await _db.SaveChangesAsync();
-    }
+    await _db.SaveChangesAsync();
+}
+
 }
