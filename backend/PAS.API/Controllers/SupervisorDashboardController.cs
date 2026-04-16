@@ -108,4 +108,18 @@ public async Task<IActionResult> WithdrawInterest(int id)
         return StatusCode(500, new { message = "Unexpected error.", detail = ex.Message });
     }
 }
+[HttpGet("submissions")]
+public async Task<IActionResult> GetSubmissions()
+{
+    try
+    {
+        var userId = GetCurrentUserId();
+        var result = await _service.GetSubmissionsAsync(userId);
+        return Ok(new { message = "Submissions retrieved.", data = result });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { message = "Unexpected error.", detail = ex.Message });
+    }
+}
 }

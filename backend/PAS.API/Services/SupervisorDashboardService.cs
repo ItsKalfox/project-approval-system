@@ -112,5 +112,56 @@ public async Task WithdrawInterestAsync(int supervisorUserId, int projectId)
 
     await _db.SaveChangesAsync();
 }
+public async Task<SupervisorSubmissionsDto> GetSubmissionsAsync(int supervisorUserId)
+{
+    var matchedProjects = await _db.Interests
+        .Where(i => i.SupervisorId == supervisorUserId)
+        .Include(i => i.Project)
+            .ThenInclude(p => p.ResearchArea)
+        .Where(i => i.Project.Status == "Matched" && !i.Project.IsDeleted)
+        .OrderByDescending(i => i.CreatedAt)
+        .Select(i => new AnonymousProjectDto
+        {
+            ProjectId                = i.Project.ProjectId,
+            Title                    = i.Project.Title,
+            Abstract                 = i.Project.Abstract,
+            TechnicalStack           = i.Project.TechnicalStack,
+            Description              = i.Project.Description,
+            ResearchAreaId           = i.Project.ResearchAreaId ?? 0,
+            ResearchAreaName         = i.Project.ResearchArea != null ? i.Project.ResearchArea.Name : string.Empty,
+            Status                   = i.Project.Status,
+            HasProposalPdf           = i.Project.BlobFilePath != null,
+            SubmittedAt              = i.Project.SubmittedAt,
+            AlreadyExpressedInterest = true
+        })
+        .ToListAsync();
+
+    var pendingReviews = await _db.Projects
+        .Include(p => p.ResearchArea)
+        .Where(p => p.Status == "Submitted" && !p.IsDeleted)
+        .Where(p => !_db.Interests.Any(i => i.SupervisorId == supervisorUserId && i.ProjectId == p.ProjectId))
+        .OrderByDescending(p => p.SubmittedAt)
+        .Select(p => new AnonymousProjectDto
+        {
+            ProjectId                = p.ProjectId,
+            Title                    = p.Title,
+            Abstract                 = p.Abstract,
+            TechnicalStack           = p.TechnicalStack,
+            Description              = p.Description,
+            ResearchAreaId           = p.ResearchAreaId ?? 0,
+            ResearchAreaName         = p.ResearchArea != null ? p.ResearchArea.Name : string.Empty,
+            Status                   = p.Status,
+            HasProposalPdf           = p.BlobFilePath != null,
+            SubmittedAt              = p.SubmittedAt,
+            AlreadyExpressedInterest = false
+        })
+        .ToListAsync();
+
+    return new SupervisorSubmissionsDto
+    {
+        MatchedProjects = matchedProjects,
+        PendingReviews  = pendingReviews
+    };
+}
 
 }
