@@ -30,6 +30,8 @@ builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<ISupervisorService, SupervisorService>();
 builder.Services.AddScoped<IResearchAreaService, ResearchAreaService>();
 builder.Services.AddScoped<ICourseworkService, CourseworkService>();
+builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
+builder.Services.AddScoped<ISubmissionService, SubmissionService>();
 
 // ── JWT Bearer Authentication ──────────────────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -61,6 +63,9 @@ builder.Services.AddAuthorization(options =>
     // Accessible by MODULE LEADER role (extend this list to add more roles later)
     options.AddPolicy("ModuleLeaderOnly", policy =>
         policy.RequireRole("MODULE LEADER"));
+
+    options.AddPolicy("StudentOnly", policy =>
+        policy.RequireRole("STUDENT"));
 });
 
 // ── CORS (allow Vite dev server) ─────────────────────────────────────────
