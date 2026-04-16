@@ -92,10 +92,16 @@ public class SupervisorDashboardService : ISupervisorDashboardService
         CreatedAt    = DateTime.UtcNow
     });
 
+    _db.Matches.Add(new Match
+    {
+        SupervisorId = supervisorUserId,
+        ProjectId    = projectId,
+        MatchDate    = DateTime.UtcNow
+    });
+
     project.Status = "Matched";
 
     await _db.SaveChangesAsync();
-    
 }
 public async Task WithdrawInterestAsync(int supervisorUserId, int projectId)
 {
@@ -108,6 +114,12 @@ public async Task WithdrawInterestAsync(int supervisorUserId, int projectId)
         ?? throw new KeyNotFoundException($"Project {projectId} not found.");
 
     _db.Interests.Remove(interest);
+
+    var match = await _db.Matches
+        .FirstOrDefaultAsync(m => m.SupervisorId == supervisorUserId && m.ProjectId == projectId);
+    if (match != null)
+        _db.Matches.Remove(match);
+
     project.Status = "Submitted";
 
     await _db.SaveChangesAsync();
@@ -162,6 +174,38 @@ public async Task<SupervisorSubmissionsDto> GetSubmissionsAsync(int supervisorUs
         MatchedProjects = matchedProjects,
         PendingReviews  = pendingReviews
     };
+}
+
+public async Task<IEnumerable<RevealedProjectDto>> GetMatchedProjectsWithStudentInfoAsync(int supervisorUserId)
+{
+    return await _db.Matches
+        .Where(m => m.SupervisorId == supervisorUserId)
+        .Include(m => m.Project)
+            .ThenInclude(p => p.ResearchArea)
+        .Include(m => m.Project)
+            .ThenInclude(p => p.Group)
+                .ThenInclude(g => g!.Leader)
+                    .ThenInclude(s => s!.User)
+        .Where(m => !m.Project.IsDeleted)
+        .OrderByDescending(m => m.MatchDate)
+        .Select(m => new RevealedProjectDto
+        {
+            ProjectId                = m.Project.ProjectId,
+            Title                    = m.Project.Title,
+            Abstract                 = m.Project.Abstract,
+            TechnicalStack           = m.Project.TechnicalStack,
+            Description              = m.Project.Description,
+            ResearchAreaId           = m.Project.ResearchAreaId ?? 0,
+            ResearchAreaName         = m.Project.ResearchArea != null ? m.Project.ResearchArea.Name : string.Empty,
+            Status                   = m.Project.Status,
+            HasProposalPdf           = m.Project.BlobFilePath != null,
+            SubmittedAt              = m.Project.SubmittedAt,
+            AlreadyExpressedInterest = true,
+            StudentName              = m.Project.Group != null && m.Project.Group.Leader != null ? m.Project.Group.Leader.User.Name : string.Empty,
+            StudentEmail             = m.Project.Group != null && m.Project.Group.Leader != null ? m.Project.Group.Leader.User.Email : string.Empty,
+            StudentBatch             = m.Project.Group != null && m.Project.Group.Leader != null ? m.Project.Group.Leader.Batch : string.Empty
+        })
+        .ToListAsync();
 }
 
 }
