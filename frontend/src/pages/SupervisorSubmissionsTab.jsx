@@ -152,11 +152,12 @@ export default function SupervisorSubmissionsTab() {
           <div>
             <div className="dash-card-title">Submissions</div>
             <div className="dash-card-subtitle">
-              Your matched projects and projects awaiting your review.
+              Review project proposals and track your matched students.
+              Student identities are hidden until a match is confirmed.
             </div>
           </div>
           <button className="btn btn-secondary" onClick={fetchSubmissions} disabled={loading}>
-            {loading ? 'Refreshing…' : 'Refresh'}
+            {loading ? 'Refreshing…' : '↻ Refresh'}
           </button>
         </div>
 
@@ -168,8 +169,13 @@ export default function SupervisorSubmissionsTab() {
             {/* Matched Projects */}
             <div className="submissions-section">
               <div className="submissions-section-header">
-                <span className="submissions-section-title">Matched Projects</span>
-                <span className="submissions-count matched-count">{matchedProjects.length}</span>
+                <span className="submissions-section-title" style={{ color: '#6366f1', fontWeight: 700 }}>
+                  🔗 Matched Projects
+                </span>
+                <span className="submissions-count matched-count"
+                  style={{ background: '#6366f1', color: '#fff', borderRadius: 20, padding: '2px 10px', fontSize: 13 }}>
+                  {matchedProjects.length}
+                </span>
               </div>
 
               {matchedProjects.length === 0 ? (
@@ -193,8 +199,13 @@ export default function SupervisorSubmissionsTab() {
             {/* Pending Reviews */}
             <div className="submissions-section">
               <div className="submissions-section-header">
-                <span className="submissions-section-title">Pending Reviews</span>
-                <span className="submissions-count pending-count">{pendingReviews.length}</span>
+                <span className="submissions-section-title" style={{ color: '#f59e0b', fontWeight: 700 }}>
+                  ⏳ Pending Reviews
+                </span>
+                <span className="submissions-count pending-count"
+                  style={{ background: '#f59e0b', color: '#fff', borderRadius: 20, padding: '2px 10px', fontSize: 13 }}>
+                  {pendingReviews.length}
+                </span>
               </div>
 
               {pendingReviews.length === 0 ? (
@@ -202,11 +213,16 @@ export default function SupervisorSubmissionsTab() {
                   <p>No pending proposals waiting for review.</p>
                 </div>
               ) : (
-                <div className="project-grid">
-                  {pendingReviews.map(p => (
-                    <ProjectCard key={p.projectId} project={p} />
-                  ))}
-                </div>
+                <>
+                  <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 10 }}>
+                    Student identities are hidden. Express interest to reveal them after matching.
+                  </p>
+                  <div className="project-grid">
+                    {pendingReviews.map(p => (
+                      <ProjectCard key={p.projectId} project={p} />
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </>
