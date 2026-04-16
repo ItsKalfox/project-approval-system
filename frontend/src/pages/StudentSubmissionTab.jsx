@@ -473,7 +473,7 @@ export default function StudentSubmissionTab() {
               <p>You haven't submitted a proposal for this coursework.</p>
               {!deadlinePassed ? (
                 <button className="btn btn-primary" onClick={openCreateForm}>
-                  📤 Create Submission
+                   Create Submission
                 </button>
               ) : (
                 <p className="sub-closed-msg">
