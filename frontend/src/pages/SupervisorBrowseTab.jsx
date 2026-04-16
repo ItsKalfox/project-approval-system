@@ -14,6 +14,7 @@ export default function SupervisorBrowseTab() {
   const [pdfUrl, setPdfUrl]                         = useState(null);
   const [pdfLoading, setPdfLoading]                 = useState(false);
   const [interestMap, setInterestMap]               = useState({});
+const [confirmProject, setConfirmProject] = useState(null);
 
   useEffect(() => {
     const fetchLookups = async () => {
@@ -110,45 +111,22 @@ export default function SupervisorBrowseTab() {
     }
   };
 
-  const withdrawInterest = async (projectId) => {
-    setInterestMap(m => ({ ...m, [projectId]: 'loading' }));
-    try {
-      await api.delete(`/supervisor/dashboard/projects/${projectId}/interest`);
-      setInterestMap(m => ({ ...m, [projectId]: 'idle' }));
-      setProjects(prev =>
-        prev.map(p => p.projectId === projectId ? { ...p, alreadyExpressedInterest: false } : p)
-      );
-      if (selected?.projectId === projectId)
-        setSelected(prev => ({ ...prev, alreadyExpressedInterest: false }));
-    } catch (err) {
-      setInterestMap(m => ({ ...m, [projectId]: 'error' }));
-      alert(err.response?.data?.message ?? 'Could not withdraw interest.');
-    }
-  };
 
   const InterestButton = ({ project }) => {
-    const state = interestMap[project.projectId];
-    if (project.alreadyExpressedInterest && state !== 'idle') {
-      return (
-        <button
-          className="btn btn-danger btn-sm"
-          disabled={state === 'loading'}
-          onClick={(e) => { e.stopPropagation(); withdrawInterest(project.projectId); }}
-        >
-          {state === 'loading' ? 'Withdrawing…' : 'Withdraw Interest'}
-        </button>
-      );
-    }
-    return (
-      <button
-        className="btn btn-primary btn-sm"
-        disabled={state === 'loading'}
-        onClick={(e) => { e.stopPropagation(); expressInterest(project.projectId); }}
-      >
-        {state === 'loading' ? 'Sending…' : '+ Express Interest'}
-      </button>
-    );
-  };
+  const state = interestMap[project.projectId];
+  if (project.alreadyExpressedInterest && state !== 'idle') {
+    return <span className="interest-status matched">✓ Interested</span>;
+  }
+  return (
+    <button
+      className="btn btn-primary btn-sm"
+      disabled={state === 'loading'}
+      onClick={(e) => { e.stopPropagation(); setConfirmProject(project); }}
+    >
+      {state === 'loading' ? 'Sending…' : '+ Express Interest'}
+    </button>
+  );
+};
 
   const InterestStatus = ({ project }) => {
     if (project.alreadyExpressedInterest && interestMap[project.projectId] !== 'idle') {
@@ -349,6 +327,36 @@ export default function SupervisorBrowseTab() {
           </div>
         </div>
       )}
+
+      {/* Confirm Interest Modal */}
+{confirmProject && (
+  <div className="modal-overlay modal-blur" onClick={() => setConfirmProject(null)}>
+    <div className="confirm-interest-box" onClick={e => e.stopPropagation()}>
+      <h3 className="confirm-interest-title">Confirm Interest</h3>
+      <p className="confirm-interest-desc">
+        Are you sure you want to express interest in <strong>{confirmProject.title}</strong>?
+        This will mark the project as matched.
+      </p>
+      <div className="confirm-interest-actions">
+        <button
+          className="btn btn-secondary"
+          onClick={() => setConfirmProject(null)}
+        >
+          Cancel
+        </button>
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            expressInterest(confirmProject.projectId);
+            setConfirmProject(null);
+          }}
+        >
+          Yes, Express Interest
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

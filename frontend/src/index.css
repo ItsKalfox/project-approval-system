@@ -1223,13 +1223,13 @@ body {
   gap: 16px;
 }
 
-.area-card {
-  background: var(--gray-50);
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-sm);
-  padding: 16px;
-  transition: all var(--transition);
-}
+  .area-card {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    transition: all var(--transition);
+  }
 
 .area-card:hover {
   border-color: var(--green-300);
@@ -1872,6 +1872,7 @@ body {
   }
 }
 
+
 /* Supervisor browse tab */
 .project-grid {
   display: grid;
@@ -1881,24 +1882,23 @@ body {
 }
 
 .project-card {
-  background: var(--white);
-  border: 1px solid var(--gray-200);
-  border-radius: 10px;
-  padding: 16px;
+  background: var(--gray-50);
+  border: 1.5px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 18px;
   cursor: pointer;
   transition: box-shadow 0.2s, border-color 0.2s;
 }
-
 .project-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
-  border-color: #6366f1;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  border-color: var(--green-400, #4ade80);
 }
 
 .project-card-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .project-card-title {
@@ -1906,6 +1906,7 @@ body {
   font-weight: 700;
   margin-bottom: 6px;
   line-height: 1.4;
+  color: var(--gray-900);
 }
 
 .project-card-abstract {
@@ -1916,7 +1917,7 @@ body {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .project-card-stack {
@@ -1929,7 +1930,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--gray-100);
+  gap: 8px;
 }
 
 .project-date {
@@ -1940,7 +1944,7 @@ body {
 .research-area-badge {
   font-size: 11px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 20px;
   background: #ede9fe;
   color: #5b21b6;
@@ -1948,22 +1952,11 @@ body {
 
 .pdf-badge {
   font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 20px;
-  background: #fef9c3;
-  color: #92400e;
-}
-
-.interest-badge {
-  font-size: 12px;
   font-weight: 600;
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: 20px;
-}
-
-.interest-badge.interested {
-  background: #d1fae5;
-  color: #065f46;
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .interest-status {
@@ -1974,15 +1967,23 @@ body {
 }
 
 .interest-status.matched {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--green-100);
+  color: var(--green-700);
 }
 
 .interest-status.pending {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--gray-100);
+  color: var(--gray-500);
 }
 
+/* Project card interest button - not full width */
+.project-card-footer .btn {
+  width: auto;
+  padding: 6px 14px;
+  font-size: 12px;
+}
+
+/* PDF viewer */
 .pdf-viewer {
   width: 100%;
   height: 500px;
@@ -1991,28 +1992,73 @@ body {
   margin-top: 8px;
 }
 
+/* Project detail modal */
 .modal-box {
   background: var(--white);
   border-radius: 14px;
-  max-width: 760px;
+  max-width: 680px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 88vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.modal-box .modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--gray-100);
+  gap: 16px;
+}
+
+.modal-box .modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 6px 0 0;
+  color: var(--gray-900);
 }
 
 .modal-close {
-  background: none;
+  background: var(--gray-100);
   border: none;
-  font-size: 20px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 16px;
   cursor: pointer;
-  color: var(--gray-400);
+  color: var(--gray-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
 }
 
 .modal-close:hover {
+  background: var(--gray-200);
   color: var(--gray-900);
+}
+
+.modal-box .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+.modal-box .modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--gray-100);
+}
+
+.modal-box .modal-footer .btn {
+  width: auto;
 }
 
 .modal-section {
@@ -2020,101 +2066,150 @@ body {
 }
 
 .modal-section h4 {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--gray-500);
+  letter-spacing: 0.06em;
+  color: var(--gray-400);
   margin-bottom: 6px;
 }
 
 .modal-section p {
   font-size: 14px;
   line-height: 1.7;
+  color: var(--gray-700);
 }
 
+/* Coursework cards */
 .coursework-card {
-  background: var(--white);
-  border: 1.5px solid #d1d5db;
-  border-radius: 10px;
+  background: var(--gray-50);
+  border: 1.5px solid var(--gray-200);
+  border-radius: 12px;
   padding: 20px;
   cursor: pointer;
   transition: box-shadow 0.2s, border-color 0.2s;
 }
-
 .coursework-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
-  border-color: #6366f1;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  border-color: var(--green-500);
 }
 
 .coursework-card-title {
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 8px;
+  color: var(--gray-900);
 }
 
 .coursework-card-desc {
   font-size: 13px;
   color: var(--gray-500);
   line-height: 1.6;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .coursework-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--gray-100);
 }
 
 .coursework-type-badge {
   font-size: 11px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 20px;
-  background: #e0e7ff;
-  color: #3730a3;
+  background: var(--green-100);
+  color: var(--green-700);
 }
 
+/* Filter bar */
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--gray-200);
+  border-bottom: 1px solid var(--gray-100);
 }
 
-.filter-btn {
-  padding: 6px 14px;
+.filter-bar .filter-btn {
+  padding: 6px 16px;
   border-radius: 20px;
-  border: 1px solid var(--gray-200);
+  border: 1.5px solid var(--gray-200);
   background: var(--white);
   font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
-  color: var(--gray-700);
+  color: var(--gray-600, #4b5563);
 }
 
-.filter-btn:hover {
-  border-color: #6366f1;
-  color: #6366f1;
+.filter-bar .filter-btn:hover {
+  border-color: var(--green-500);
+  color: var(--green-700);
 }
 
-.filter-btn.active {
-  background: #6366f1;
-  color: #fff;
-  border-color: #6366f1;
+.filter-bar .filter-btn.active {
+  background: var(--green-600);
+  color: var(--white);
+  border-color: var(--green-600);
 }
 
+/* Back button */
 .btn-back {
   background: none;
   border: none;
   cursor: pointer;
   font-size: 13px;
-  color: #6366f1;
+  color: var(--green-600);
   padding: 0;
+  margin-bottom: 4px;
 }
 
 .btn-back:hover {
   text-decoration: underline;
+}
+
+/* Confirm interest modal */
+.confirm-interest-box {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 32px 28px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.confirm-interest-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 10px;
+}
+
+.confirm-interest-desc {
+  font-size: 14px;
+  color: var(--gray-500);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.confirm-interest-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirm-interest-actions .btn {
+  width: auto;
+  min-width: 130px;
+}
+
+.modal-blur {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
