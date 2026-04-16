@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import DashboardShell from './DashboardShell';
 import api from '../api';
+import SupervisorBrowseTab from './SupervisorBrowseTab';
 
 const TABS = [
   { id: 'browse',       label: 'Browse'       },
@@ -37,17 +38,7 @@ export default function SupervisorDashboard() {
     >
       {({ activeTab }) => (
         <>
-          {activeTab === 'browse' && (
-            <div className="tab-content">
-              <div className="dash-card">
-                <div className="dash-card-title">Browse Students</div>
-                <p style={{ color: 'var(--gray-500)', fontSize: 14, lineHeight: 1.7 }}>
-                  Browse student project proposals and profiles that have been matched or
-                  are awaiting supervisor assignment.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'browse' && <SupervisorBrowseTab />}   
 
           {activeTab === 'submissions' && (
             <div className="tab-content">
