@@ -32,6 +32,7 @@ builder.Services.AddScoped<IResearchAreaService, ResearchAreaService>();
 builder.Services.AddScoped<ICourseworkService, CourseworkService>();
 builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
 builder.Services.AddScoped<ISubmissionService, SubmissionService>();
+builder.Services.AddScoped<ISupervisorDashboardService, SupervisorDashboardService>();
 
 // ── JWT Bearer Authentication ──────────────────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -66,6 +67,9 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy("StudentOnly", policy =>
         policy.RequireRole("STUDENT"));
+        
+        options.AddPolicy("SupervisorOnly", policy =>
+    policy.RequireRole("SUPERVISOR"));
 });
 
 // ── CORS (allow Vite dev server) ─────────────────────────────────────────
@@ -99,4 +103,4 @@ app.MapControllers();
 // Health-check / root endpoint
 app.MapGet("/", () => "PAS API is running successfully!");
 
-app.Run();
+app.Run();
