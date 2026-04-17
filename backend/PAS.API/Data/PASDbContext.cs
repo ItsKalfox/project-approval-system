@@ -14,6 +14,7 @@ public class PASDbContext : DbContext
     public DbSet<Student> Students { get; set; }
     public DbSet<Supervisor> Supervisors { get; set; }
     public DbSet<ModuleLeader> ModuleLeaders { get; set; }
+    public DbSet<Admin> Admins { get; set; }
     public DbSet<ResearchArea> ResearchAreas { get; set; }
     public DbSet<Group> Groups { get; set; }
     public DbSet<Project> Projects { get; set; }
@@ -60,6 +61,14 @@ public class PASDbContext : DbContext
             .WithOne(u => u.ModuleLeader)
             .HasForeignKey<ModuleLeader>(m => m.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Admin>()
+            .HasKey(a => a.UserId);
+
+        modelBuilder.Entity<Admin>()
+            .HasOne(a => a.User)
+            .WithOne(u => u.Admin)
+            .HasForeignKey<Admin>(a => a.UserId);
 
         // Unique email
         modelBuilder.Entity<User>()

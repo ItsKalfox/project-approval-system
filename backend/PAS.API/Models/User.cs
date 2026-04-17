@@ -12,4 +12,5 @@ public class User
     public Student? Student { get; set; }
     public Supervisor? Supervisor { get; set; }
     public ModuleLeader? ModuleLeader { get; set; }
+    public Admin? Admin { get; set; }
 }
