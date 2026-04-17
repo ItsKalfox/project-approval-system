@@ -219,4 +219,33 @@ public async Task<IEnumerable<RevealedProjectDto>> GetMatchedProjectsWithStudent
         .ToListAsync();
 }
 
+public async Task<IEnumerable<MatchedHistoryDto>> GetMatchHistoryAsync(int supervisorUserId)
+{
+    return await _db.Matches
+        .Where(m => m.SupervisorId == supervisorUserId)
+        .Include(m => m.Project)
+            .ThenInclude(p => p.ResearchArea)
+        .Include(m => m.Project)
+            .ThenInclude(p => p.Group)
+                .ThenInclude(g => g.Leader)
+                    .ThenInclude(s => s.User)
+        .Where(m => !m.Project.IsDeleted)
+        .OrderByDescending(m => m.MatchDate)
+        .Select(m => new MatchedHistoryDto
+        {
+            ProjectId = m.Project.ProjectId,
+            Title = m.Project.Title,
+            ResearchAreaName = m.Project.ResearchArea != null ? m.Project.ResearchArea.Name : string.Empty,
+            StudentName = m.Project.Group != null && m.Project.Group.Leader != null
+                ? m.Project.Group.Leader.User.Name : string.Empty,
+            StudentEmail = m.Project.Group != null && m.Project.Group.Leader != null
+                ? m.Project.Group.Leader.User.Email : string.Empty,
+            StudentBatch = m.Project.Group != null && m.Project.Group.Leader != null
+                ? m.Project.Group.Leader.Batch : string.Empty,
+            MatchedAt = m.MatchDate,
+            Status = m.Project.Status ?? string.Empty
+        })
+        .ToListAsync();
+}
+
 }

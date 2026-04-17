@@ -31,7 +31,10 @@ export default function StudentSubmissionTab() {
     Description: '',
     Abstract: '',
     ResearchAreaId: '',
+    GroupId: '',
   });
+  const [availableGroups, setAvailableGroups] = useState([]);
+  const [loadingGroups, setLoadingGroups] = useState(false);
   const [file, setFile] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -143,11 +146,25 @@ export default function StudentSubmissionTab() {
   };
 
   // ── CREATE submission ──────────────────────────────────────────────────
-  const openCreateForm = () => {
+  const openCreateForm = async () => {
     setIsEditing(false);
-    setFormData({ Title: '', Description: '', Abstract: '', ResearchAreaId: '' });
+    setFormData({ Title: '', Description: '', Abstract: '', ResearchAreaId: '', GroupId: '' });
     setFile(null);
     setShowForm(true);
+
+    // Load available groups if this is a group submission
+    if (selectedPoint && !selectedPoint.isIndividual) {
+      setLoadingGroups(true);
+      try {
+        const res = await api.get(`/submissions/coursework/${selectedPoint.courseworkId}/groups`);
+        setAvailableGroups(res.data.data || []);
+      } catch (err) {
+        console.error('Failed to load groups:', err);
+        setAvailableGroups([]);
+      } finally {
+        setLoadingGroups(false);
+      }
+    }
   };
 
   // ── EDIT submission ────────────────────────────────────────────────────
@@ -159,6 +176,7 @@ export default function StudentSubmissionTab() {
       Description: mySubmission.description || '',
       Abstract: mySubmission.abstract || '',
       ResearchAreaId: mySubmission.researchAreaId?.toString() || '',
+      GroupId: mySubmission.groupId?.toString() || '',
     });
     setFile(null);
     setShowForm(true);
@@ -173,6 +191,7 @@ export default function StudentSubmissionTab() {
     if (!formData.Description.trim()) { flash('Description is required.', 'error'); return; }
     if (!formData.Abstract.trim()) { flash('Abstract is required.', 'error'); return; }
     if (!formData.ResearchAreaId) { flash('Please select a research area.', 'error'); return; }
+    if (!selectedPoint.isIndividual && !formData.GroupId) { flash('Please select a group.', 'error'); return; }
     if (!isEditing && !file) { flash('Please upload a PDF file.', 'error'); return; }
 
     const fd = new FormData();
@@ -180,6 +199,7 @@ export default function StudentSubmissionTab() {
     fd.append('Description', formData.Description.trim());
     fd.append('Abstract', formData.Abstract.trim());
     fd.append('ResearchAreaId', formData.ResearchAreaId);
+    if (formData.GroupId && formData.GroupId !== '') fd.append('GroupId', formData.GroupId);
     if (file) fd.append('file', file);
 
     try {
@@ -351,6 +371,35 @@ export default function StudentSubmissionTab() {
               </select>
             </div>
 
+            {!selectedPoint?.isIndividual && (
+              <div className="form-group">
+                <label className="form-label">Group *</label>
+                {loadingGroups ? (
+                  <div style={{ padding: '12px', color: 'var(--gray-500)', fontSize: 14 }}>
+                    Loading groups...
+                  </div>
+                ) : (
+                  <select
+                    className="form-input sub-select"
+                    value={formData.GroupId}
+                    onChange={(e) => setFormData({ ...formData, GroupId: e.target.value })}
+                  >
+                    <option value="">— Select a group —</option>
+                    {availableGroups.map((group) => (
+                      <option 
+                        key={group.groupId} 
+                        value={group.groupId}
+                        disabled={group.currentMembers >= group.maxMembers}
+                      >
+                        {group.groupName} ({group.currentMembers}/{group.maxMembers} members)
+                        {group.currentMembers >= group.maxMembers ? ' - FULL' : ''}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            )}
+
             <div className="form-group">
               <label className="form-label">
                 Proposal File (PDF) {isEditing ? '' : '*'}
@@ -511,6 +560,14 @@ export default function StudentSubmissionTab() {
                       {mySubmission.researchAreaName || '—'}
                     </span>
                   </div>
+                  {selectedPoint && !selectedPoint.isIndividual && mySubmission.groupName && (
+                    <div className="sub-detail-item">
+                      <span className="sub-detail-item-label">Group</span>
+                      <span className="sub-detail-item-value" style={{ fontWeight: 600, color: 'var(--primary-color)' }}>
+                        {mySubmission.groupName}
+                      </span>
+                    </div>
+                  )}
                   <div className="sub-detail-item">
                     <span className="sub-detail-item-label">Submitted At</span>
                     <span className="sub-detail-item-value">

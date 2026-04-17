@@ -45,4 +45,9 @@ public interface ISubmissionService
     /// </summary>
     Task<(Stream FileStream, string ContentType, string FileName)> GetSubmissionFileAsync(
         int studentUserId, int projectId);
+
+    /// <summary>
+    /// Returns available groups for a group submission coursework.
+    /// </summary>
+    Task<IEnumerable<AvailableGroupDto>> GetAvailableGroupsAsync(int courseworkId);
 }

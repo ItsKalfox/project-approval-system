@@ -8,6 +8,7 @@ public class CreateSubmissionDto
     public string Description { get; set; } = string.Empty;
     public string Abstract { get; set; } = string.Empty;
     public int ResearchAreaId { get; set; }
+    public int? GroupId { get; set; }
 }
 
 public class UpdateSubmissionDto
@@ -40,6 +41,8 @@ public class SubmissionResponseDto
     public string SubmittedByName { get; set; } = string.Empty;
     public DateTime? Deadline { get; set; }
     public bool IsIndividual { get; set; }
+    public int? GroupId { get; set; }
+    public string? GroupName { get; set; }
 
     // Matching details
     public MatchedSupervisorDto? MatchedSupervisor { get; set; }
@@ -61,4 +64,12 @@ public class SubmissionPointDto
     public bool IsIndividual { get; set; }
     public bool HasSubmitted { get; set; }
     public int? ExistingProjectId { get; set; }
+}
+
+public class AvailableGroupDto
+{
+    public int GroupId { get; set; }
+    public string GroupName { get; set; } = string.Empty;
+    public int CurrentMembers { get; set; }
+    public int MaxMembers { get; set; }
 }

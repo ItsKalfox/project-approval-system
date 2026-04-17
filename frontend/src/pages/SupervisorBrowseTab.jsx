@@ -14,7 +14,8 @@ export default function SupervisorBrowseTab() {
   const [pdfUrl, setPdfUrl]                         = useState(null);
   const [pdfLoading, setPdfLoading]                 = useState(false);
   const [interestMap, setInterestMap]               = useState({});
-const [confirmProject, setConfirmProject] = useState(null);
+  const [confirmProject, setConfirmProject]         = useState(null);
+  const [matchHistory, setMatchHistory]             = useState([]);
 
   useEffect(() => {
     const fetchLookups = async () => {
@@ -33,7 +34,17 @@ const [confirmProject, setConfirmProject] = useState(null);
       }
     };
     fetchLookups();
+    fetchMatchHistory();
   }, []);
+
+  const fetchMatchHistory = async () => {
+    try {
+      const res = await api.get('/supervisor/dashboard/history');
+      setMatchHistory(res.data.data ?? []);
+    } catch (err) {
+      console.error('Failed to load match history', err);
+    }
+  };
 
   const loadProjects = async (coursework, areaId = '') => {
     setLoadingProjects(true);
@@ -105,6 +116,7 @@ const [confirmProject, setConfirmProject] = useState(null);
       );
       if (selected?.projectId === projectId)
         setSelected(prev => ({ ...prev, alreadyExpressedInterest: true }));
+      fetchMatchHistory();
     } catch (err) {
       setInterestMap(m => ({ ...m, [projectId]: 'error' }));
       alert(err.response?.data?.message ?? 'Could not express interest.');
@@ -269,10 +281,59 @@ const [confirmProject, setConfirmProject] = useState(null);
               </div>
             ))}
           </div>
-        )}
-      </div>
+)}
+        </div>
 
-      {/* Project Detail Modal */}
+        {/* Match History Section */}
+        {matchHistory.length > 0 && (
+          <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--gray-200)' }}>
+            <div style={{ fontWeight: 600, marginBottom: 12, color: 'var(--gray-700)' }}>
+              Match History ({matchHistory.length})
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {matchHistory.map((item) => (
+                <div
+                  key={item.projectId}
+                  style={{
+                    padding: '12px 16px',
+                    background: '#f8fafc',
+                    borderRadius: 8,
+                    border: '1px solid var(--gray-200)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, color: 'var(--gray-800)' }}>{item.title}</div>
+                      <div style={{ fontSize: 12, color: 'var(--gray-500)' }}>
+                        {item.researchAreaName} • Matched on {new Date(item.matchedAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: 12,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        background: item.status === 'Matched' ? '#dcfce7' : '#fef3c7',
+                        color: item.status === 'Matched' ? '#166534' : '#92400e',
+                      }}
+                    >
+                      {item.status}
+                    </span>
+                  </div>
+                  {item.studentName && (
+                    <div style={{ marginTop: 8, fontSize: 13, color: 'var(--gray-600)' }}>
+                      <strong>Student:</strong> {item.studentName} ({item.studentEmail})
+                      {item.studentBatch && ` • Batch: ${item.studentBatch}`}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Project Detail Modal */}
       {selected && (
         <div className="modal-overlay" onClick={closeProject}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>

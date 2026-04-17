@@ -109,11 +109,12 @@
   overflow: hidden;
   max-height: 0;
   transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0 24px;
 }
 
 .expansion-content.active {
   max-height: 400px;
-  padding: 32px 0;
+  padding: 32px 24px;
 }
 
 /* 3D Flip Card */

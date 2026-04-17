@@ -73,7 +73,7 @@ export default function SupervisorSubmissionsTab({ selectedAreas = [] }) {
     return (
       <div style={{ perspective: 800, marginTop: 8 }}>
         <div style={{
-          width: '100%', height: 110, position: 'relative',
+          width: '100%', height: 140, position: 'relative',
           transformStyle: 'preserve-3d',
           transition: 'transform 0.6s cubic-bezier(.4,2,.6,1)',
           transform: flipped ? 'rotateY(180deg)' : 'none',

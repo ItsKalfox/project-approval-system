@@ -137,4 +137,19 @@ public async Task<IActionResult> GetMatchedRevealed()
         return StatusCode(500, new { message = "Unexpected error.", detail = ex.Message });
     }
 }
+
+[HttpGet("history")]
+public async Task<IActionResult> GetMatchHistory()
+{
+    try
+    {
+        var userId = GetCurrentUserId();
+        var result = await _service.GetMatchHistoryAsync(userId);
+        return Ok(new { message = "Match history retrieved.", data = result });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { message = "Unexpected error.", detail = ex.Message });
+    }
+}
 }
