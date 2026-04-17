@@ -11,20 +11,23 @@ export default function StudentProjectTab() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchSubmissions();
   }, []);
 
-  const fetchSubmissions = async () => {
+  const fetchSubmissions = async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
       const res = await api.get('/submissions/my-submissions');
       setSubmissions(res.data.data || []);
     } catch (err) {
       console.error('Error fetching submissions:', err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -54,6 +57,37 @@ export default function StudentProjectTab() {
 
   return (
     <div className="project-tab-container">
+      {/* Summary banner */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: 16, padding: '10px 16px',
+        background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+        borderRadius: 10, color: '#fff',
+      }}>
+        <div style={{ display: 'flex', gap: 24 }}>
+          <div>
+            <div style={{ fontSize: 11, opacity: 0.8, textTransform: 'uppercase', letterSpacing: 1 }}>Total</div>
+            <div style={{ fontWeight: 700, fontSize: 20 }}>{submissions.length}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, opacity: 0.8, textTransform: 'uppercase', letterSpacing: 1 }}>Matched</div>
+            <div style={{ fontWeight: 700, fontSize: 20 }}>
+              {submissions.filter(s => s.matchedSupervisor).length}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={() => fetchSubmissions(true)}
+          disabled={refreshing}
+          style={{
+            padding: '6px 14px', borderRadius: 20, border: '1.5px solid rgba(255,255,255,0.6)',
+            background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+          }}
+        >
+          {refreshing ? 'Refreshing…' : '↻ Refresh'}
+        </button>
+      </div>
+
       <div className="project-table-wrapper">
         <table className="project-table">
           <thead>
@@ -76,9 +110,14 @@ export default function StudentProjectTab() {
                   <td>{new Date(sub.submittedAt).toLocaleDateString()}</td>
                   <td>{sub.deadline ? new Date(sub.deadline).toLocaleDateString() : 'N/A'}</td>
                   <td>
-                    <span className={`status-badge status-${sub.status.toLowerCase().replace(/\s+/g, '-')}`}>
-                      {sub.status}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span className={`status-badge status-${sub.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                        {sub.status}
+                      </span>
+                      {sub.matchedSupervisor && (
+                        <span title="Supervisor matched" style={{ fontSize: 16 }}>🔗</span>
+                      )}
+                    </div>
                   </td>
                   <td>
                     {sub.matchedSupervisor && (

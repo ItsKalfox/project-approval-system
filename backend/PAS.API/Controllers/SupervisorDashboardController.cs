@@ -122,4 +122,19 @@ public async Task<IActionResult> GetSubmissions()
         return StatusCode(500, new { message = "Unexpected error.", detail = ex.Message });
     }
 }
+
+[HttpGet("matched-revealed")]
+public async Task<IActionResult> GetMatchedRevealed()
+{
+    try
+    {
+        var userId  = GetCurrentUserId();
+        var result  = await _service.GetMatchedProjectsWithStudentInfoAsync(userId);
+        return Ok(new { message = "Matched projects with student info retrieved.", data = result });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { message = "Unexpected error.", detail = ex.Message });
+    }
+}
 }

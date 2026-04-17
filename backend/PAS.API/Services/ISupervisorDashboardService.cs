@@ -9,5 +9,5 @@ public interface ISupervisorDashboardService
     Task ExpressInterestAsync(int supervisorUserId, int projectId);
     Task WithdrawInterestAsync(int supervisorUserId, int projectId);
     Task<SupervisorSubmissionsDto> GetSubmissionsAsync(int supervisorUserId);
-    
+    Task<IEnumerable<RevealedProjectDto>> GetMatchedProjectsWithStudentInfoAsync(int supervisorUserId);
 }
