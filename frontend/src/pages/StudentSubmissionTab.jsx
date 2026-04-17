@@ -199,20 +199,27 @@ export default function StudentSubmissionTab() {
     fd.append('Description', formData.Description.trim());
     fd.append('Abstract', formData.Abstract.trim());
     fd.append('ResearchAreaId', formData.ResearchAreaId);
-    if (formData.GroupId && formData.GroupId !== '') fd.append('GroupId', formData.GroupId);
+    if (selectedPoint.isIndividual) {
+      fd.append('GroupId', '0');
+    } else if (formData.GroupId && formData.GroupId !== '') {
+      fd.append('GroupId', formData.GroupId);
+    }
     if (file) fd.append('file', file);
 
     try {
       setSaving(true);
+      console.log('Submitting to courseworkId:', selectedPoint.courseworkId);
+      console.log('Form data:', formData);
       if (isEditing && mySubmission) {
         await api.put(`/submissions/${mySubmission.projectId}`, fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         flash('Submission updated successfully!');
       } else {
-        await api.post(`/submissions/coursework/${selectedPoint.courseworkId}`, fd, {
+        const response = await api.post(`/submissions/coursework/${selectedPoint.courseworkId}`, fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
+        console.log('Submission response:', response);
         flash('Submission created successfully!');
       }
       setShowForm(false);
@@ -220,7 +227,10 @@ export default function StudentSubmissionTab() {
       fetchMySubmission(selectedPoint.courseworkId);
       fetchSubmissionPoints();
     } catch (err) {
-      flash(err.response?.data?.message || 'Failed to save submission.', 'error');
+      console.error('Submission error:', err);
+      const errorMsg = err.response?.data?.message || err.response?.data?.detail || err.message || 'Failed to save submission.';
+      console.log('Error message:', errorMsg);
+      flash(errorMsg, 'error');
     } finally {
       setSaving(false);
     }
@@ -560,7 +570,7 @@ export default function StudentSubmissionTab() {
                       {mySubmission.researchAreaName || '—'}
                     </span>
                   </div>
-                  {selectedPoint && !selectedPoint.isIndividual && mySubmission.groupName && (
+                  {selectedPoint?.isIndividual !== true && mySubmission.groupName && (
                     <div className="sub-detail-item">
                       <span className="sub-detail-item-label">Group</span>
                       <span className="sub-detail-item-value" style={{ fontWeight: 600, color: 'var(--primary-color)' }}>

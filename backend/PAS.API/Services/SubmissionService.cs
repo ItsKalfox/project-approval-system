@@ -104,7 +104,7 @@ public class SubmissionService : ISubmissionService
 
         // Get existing group members for this coursework
         var groupsWithProjects = await _db.CourseworkProjects
-            .Where(cp => cp.CourseworkId == courseworkId)
+            .Where(cp => cp.CourseworkId == courseworkId && !cp.Project.IsDeleted)
             .Include(cp => cp.Project)
                 .ThenInclude(p => p.Group)
             .ToListAsync();
@@ -193,17 +193,49 @@ public class SubmissionService : ISubmissionService
             student = await _db.Students.Include(s => s.User).FirstOrDefaultAsync(s => s.UserId == studentUserId);
         }
 
-        // ── Check if student already submitted to this coursework ───────────
-        var alreadySubmitted = await _db.CourseworkProjects
-            .Include(cp => cp.Project)
-                .ThenInclude(p => p.Group)
-            .AnyAsync(cp => cp.CourseworkId == courseworkId
-                            && !cp.Project.IsDeleted
-                            && cp.Project.Group != null
-                            && cp.Project.Group.LeaderId == studentUserId);
+        Group? group = null;
 
-        if (alreadySubmitted)
-            throw new InvalidOperationException("You have already submitted to this coursework.");
+        // ── Group submission handling ────────────────────────────────────────
+        if (!coursework.IsIndividual)
+        {
+            if (!dto.GroupId.HasValue || dto.GroupId.Value <= 0 || dto.GroupId.Value > 26)
+                throw new InvalidOperationException("Invalid group selection.");
+
+            group = await _db.Groups.FindAsync(dto.GroupId.Value)
+                ?? throw new InvalidOperationException("Selected group does not exist.");
+
+            var isGroupMember = group.LeaderId == studentUserId
+                || await _db.CourseworkProjects.AnyAsync(cp => cp.CourseworkId == courseworkId
+                                                               && !cp.Project.IsDeleted
+                                                               && cp.Project.GroupId == group.GroupId
+                                                               && cp.Project.Group != null
+                                                               && cp.Project.Group.LeaderId == studentUserId);
+
+            if (!isGroupMember)
+                throw new UnauthorizedAccessException("You are not part of the selected group.");
+
+            var alreadySubmittedByGroup = await _db.CourseworkProjects
+                .AnyAsync(cp => cp.CourseworkId == courseworkId
+                                && !cp.Project.IsDeleted
+                                && cp.Project.GroupId == group.GroupId);
+
+            if (alreadySubmittedByGroup)
+                throw new InvalidOperationException("This group has already submitted to this coursework.");
+        }
+        else
+        {
+            // ── Check if student already submitted to this coursework ───────────
+            var alreadySubmitted = await _db.CourseworkProjects
+                .Include(cp => cp.Project)
+                    .ThenInclude(p => p.Group)
+                .AnyAsync(cp => cp.CourseworkId == courseworkId
+                                && !cp.Project.IsDeleted
+                                && cp.Project.Group != null
+                                && cp.Project.Group.LeaderId == studentUserId);
+
+            if (alreadySubmitted)
+                throw new InvalidOperationException("You have already submitted to this coursework.");
+        }
 
         // ── Validate research area ──────────────────────────────────────────
         var researchArea = await _db.ResearchAreas.FindAsync(dto.ResearchAreaId)
@@ -213,47 +245,39 @@ public class SubmissionService : ISubmissionService
         ValidatePdfFile(file);
 
         // ── Get or create group for ownership ───────────────────────────────
-        Group group;
-        const int maxSize = 5;
-
-        if (dto.GroupId.HasValue && dto.GroupId.Value > 0 && dto.GroupId.Value <= 26)
+        if (coursework.IsIndividual)
         {
-            // Check if this group already exists
-            group = await _db.Groups.FindAsync(dto.GroupId.Value);
-            
-            if (group != null)
+            group = await _db.Groups
+                .FirstOrDefaultAsync(g => g.LeaderId == studentUserId && g.MaximumMembers == 1);
+
+            if (group == null)
             {
-                // Group exists, check current member count for this coursework
-                var currentCount = await _db.CourseworkProjects
-                    .CountAsync(cp => cp.CourseworkId == courseworkId && cp.Project.GroupId == dto.GroupId);
-                
-                if (currentCount >= maxSize)
-                    throw new InvalidOperationException("This group is already full.");
-            }
-            else
-            {
-                // Create new group with the fixed ID using raw SQL with IDENTITY_INSERT
-                try
+                // Create individual group for the student
+                var maxGroupId = await _db.Groups.MaxAsync(g => (int?)g.GroupId) ?? 0;
+                group = new Group
                 {
-                    await _db.Database.ExecuteSqlRawAsync(
-                        "SET IDENTITY_INSERT Groups ON; INSERT INTO Groups (GroupId, LeaderId, MaximumMembers) VALUES ({0}, {1}, {2}); SET IDENTITY_INSERT Groups OFF;",
-                        dto.GroupId.Value, studentUserId, maxSize);
-                }
-                catch (Exception ex)
-                {
-                    // If insert fails (e.g., race condition), try to fetch the group
-                    group = await _db.Groups.FindAsync(dto.GroupId.Value);
-                    if (group == null)
-                        throw new InvalidOperationException("Failed to create group: " + ex.Message);
-                }
-                
-                group = await _db.Groups.FindAsync(dto.GroupId.Value)
-                    ?? throw new InvalidOperationException("Failed to create group.");
+                    GroupId = maxGroupId + 1,
+                    LeaderId = studentUserId,
+                    MaximumMembers = 1
+                };
+                _db.Groups.Add(group);
+                await _db.SaveChangesAsync();
             }
         }
         else
         {
-            throw new InvalidOperationException("Invalid group selection.");
+            const int maxSize = 5;
+
+            if (group == null)
+                throw new InvalidOperationException("Invalid group selection.");
+
+            var currentCount = await _db.CourseworkProjects
+                .CountAsync(cp => cp.CourseworkId == courseworkId
+                                  && !cp.Project.IsDeleted
+                                  && cp.Project.GroupId == group.GroupId);
+
+            if (currentCount >= maxSize)
+                throw new InvalidOperationException("This group is already full.");
         }
 
         // ── Upload file to Azure Blob ───────────────────────────────────────
@@ -494,7 +518,9 @@ public class SubmissionService : ISubmissionService
             } : null,
 
             GroupId = project.GroupId,
-            GroupName = project.GroupId.HasValue ? $"Group {GetGroupLabel(project.GroupId.Value)}" : null
+            GroupName = !coursework.IsIndividual && project.GroupId.HasValue 
+                ? $"Group {GetGroupLabel(project.GroupId.Value)}" 
+                : null
         };
     }
 
