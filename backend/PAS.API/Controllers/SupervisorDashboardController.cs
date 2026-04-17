@@ -109,12 +109,12 @@ public async Task<IActionResult> WithdrawInterest(int id)
     }
 }
 [HttpGet("submissions")]
-public async Task<IActionResult> GetSubmissions()
+public async Task<IActionResult> GetSubmissions([FromQuery] List<int>? researchAreaIds)
 {
     try
     {
         var userId = GetCurrentUserId();
-        var result = await _service.GetSubmissionsAsync(userId);
+        var result = await _service.GetSubmissionsAsync(userId, researchAreaIds);
         return Ok(new { message = "Submissions retrieved.", data = result });
     }
     catch (Exception ex)

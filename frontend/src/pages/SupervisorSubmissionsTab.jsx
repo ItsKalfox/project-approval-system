@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../api';
 
-export default function SupervisorSubmissionsTab() {
+export default function SupervisorSubmissionsTab({ selectedAreas = [] }) {
   const [matchedProjects, setMatchedProjects] = useState([]);
   const [pendingReviews, setPendingReviews]   = useState([]);
   const [revealMap, setRevealMap]             = useState({});
@@ -15,8 +15,14 @@ export default function SupervisorSubmissionsTab() {
     setLoading(true);
     setError('');
     try {
+      const params = new URLSearchParams();
+      if (selectedAreas.length > 0) {
+        selectedAreas.forEach(areaId => params.append('researchAreaIds', areaId.toString()));
+      }
+      const queryString = params.toString();
+      
       const [subRes, revealRes] = await Promise.all([
-        api.get('/supervisor/dashboard/submissions'),
+        api.get(`/supervisor/dashboard/submissions${queryString ? '?' + queryString : ''}`),
         api.get('/supervisor/dashboard/matched-revealed'),
       ]);
       setMatchedProjects(subRes.data.data?.matchedProjects ?? []);
@@ -31,7 +37,7 @@ export default function SupervisorSubmissionsTab() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedAreas]);
 
   useEffect(() => { fetchSubmissions(); }, [fetchSubmissions]);
 

@@ -124,7 +124,7 @@ public async Task WithdrawInterestAsync(int supervisorUserId, int projectId)
 
     await _db.SaveChangesAsync();
 }
-public async Task<SupervisorSubmissionsDto> GetSubmissionsAsync(int supervisorUserId)
+public async Task<SupervisorSubmissionsDto> GetSubmissionsAsync(int supervisorUserId, List<int>? researchAreaIds)
 {
     var matchedProjects = await _db.Interests
         .Where(i => i.SupervisorId == supervisorUserId)
@@ -148,10 +148,17 @@ public async Task<SupervisorSubmissionsDto> GetSubmissionsAsync(int supervisorUs
         })
         .ToListAsync();
 
-    var pendingReviews = await _db.Projects
+    var pendingReviewsQuery = _db.Projects
         .Include(p => p.ResearchArea)
         .Where(p => p.Status == "Submitted" && !p.IsDeleted)
-        .Where(p => !_db.Interests.Any(i => i.SupervisorId == supervisorUserId && i.ProjectId == p.ProjectId))
+        .Where(p => !_db.Interests.Any(i => i.SupervisorId == supervisorUserId && i.ProjectId == p.ProjectId));
+
+    if (researchAreaIds != null && researchAreaIds.Count > 0)
+    {
+        pendingReviewsQuery = pendingReviewsQuery.Where(p => researchAreaIds.Contains(p.ResearchAreaId ?? 0));
+    }
+
+    var pendingReviews = await pendingReviewsQuery
         .OrderByDescending(p => p.SubmittedAt)
         .Select(p => new AnonymousProjectDto
         {
