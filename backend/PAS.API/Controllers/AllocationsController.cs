@@ -10,8 +10,7 @@ namespace PAS.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-//[Authorize(Roles = "ModuleLeader")]
-[Authorize]
+[Authorize(Roles = "MODULE LEADER")]
 public class AllocationsController : ControllerBase
 {
     private readonly PASDbContext _context;
