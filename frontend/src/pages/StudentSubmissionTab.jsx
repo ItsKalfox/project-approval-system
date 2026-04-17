@@ -261,11 +261,11 @@ export default function StudentSubmissionTab() {
               ← Back
             </button>
             <span className="sub-pdf-title">
-              📄 {mySubmission?.proposalFileName || 'Proposal'}
+              {mySubmission?.proposalFileName || 'Proposal'}
             </span>
             <a href={pdfUrl} download={mySubmission?.proposalFileName || 'proposal.pdf'}
               className="btn btn-primary btn-sm">
-              ⬇ Download
+              Download
             </a>
           </div>
           <iframe
@@ -289,7 +289,7 @@ export default function StudentSubmissionTab() {
               ← Back
             </button>
             <h2 className="sub-form-heading">
-              {isEditing ? '✏️ Edit Submission' : '📤 New Submission'}
+              {isEditing ? 'Edit Submission' : 'New Submission'}
             </h2>
           </div>
 
@@ -297,7 +297,7 @@ export default function StudentSubmissionTab() {
             <span className="sub-point-banner-title">{selectedPoint.title}</span>
             {selectedPoint.deadline && (
               <span className={`sub-deadline-chip ${deadlinePassed ? 'passed' : ''}`}>
-                ⏰ {formatDate(selectedPoint.deadline)}
+                {formatDate(selectedPoint.deadline)}
               </span>
             )}
           </div>
@@ -379,7 +379,7 @@ export default function StudentSubmissionTab() {
                 />
                 {file ? (
                   <div className="sub-file-info">
-                    <span className="sub-file-icon">📄</span>
+                    <span className="sub-file-icon">[PDF]</span>
                     <div>
                       <div className="sub-file-name">{file.name}</div>
                       <div className="sub-file-size">{formatFileSize(file.size)}</div>
@@ -391,7 +391,7 @@ export default function StudentSubmissionTab() {
                   </div>
                 ) : (
                   <div className="sub-file-placeholder">
-                    <span style={{ fontSize: 28 }}>📎</span>
+                    <span style={{ fontSize: 28 }}>[Attach]</span>
                     <div>Click or drag a PDF file here</div>
                     <div className="sub-file-hint">Max 10 MB • PDF only</div>
                   </div>
@@ -450,7 +450,7 @@ export default function StudentSubmissionTab() {
                 </span>
                 {selectedPoint.deadline && (
                   <span className={`sub-deadline-chip ${deadlinePassed ? 'passed' : ''}`}>
-                    ⏰ Deadline: {formatDateTime(selectedPoint.deadline)}
+                    Deadline: {formatDateTime(selectedPoint.deadline)}
                   </span>
                 )}
                 {deadlinePassed && (
@@ -468,7 +468,7 @@ export default function StudentSubmissionTab() {
           {/* No submission yet */}
           {!loadingSub && !mySubmission && (
             <div className="sub-empty-state">
-              <div className="sub-empty-icon">📝</div>
+              <div className="sub-empty-icon">[Empty]</div>
               <h3>No Submission Yet</h3>
               <p>You haven't submitted a proposal for this coursework.</p>
               {!deadlinePassed ? (
@@ -530,7 +530,7 @@ export default function StudentSubmissionTab() {
                     <span className="sub-detail-item-value sub-file-link"
                       onClick={handleViewPdf}
                       style={{ cursor: 'pointer' }}>
-                      📄 {mySubmission.proposalFileName || 'View PDF'}
+                      {mySubmission.proposalFileName || 'View PDF'}
                       <span className="sub-file-size-inline">
                         ({formatFileSize(mySubmission.fileSize)})
                       </span>
@@ -543,17 +543,17 @@ export default function StudentSubmissionTab() {
                   <button className="btn btn-outline btn-sm"
                     onClick={handleViewPdf}
                     disabled={loadingPdf}>
-                    {loadingPdf ? 'Loading...' : '📄 View PDF'}
+                    {loadingPdf ? 'Loading...' : 'View PDF'}
                   </button>
 
                   {!deadlinePassed && (
                     <>
                       <button className="btn btn-primary btn-sm" onClick={openEditForm}>
-                        ✏️ Edit
+                        Edit
                       </button>
                       <button className="btn btn-danger btn-sm"
                         onClick={() => setShowDeleteConfirm(true)}>
-                        🗑 Delete
+                        Delete
                       </button>
                     </>
                   )}
@@ -600,7 +600,7 @@ export default function StudentSubmissionTab() {
       <div className="dash-card">
         <div className="dash-card-header">
           <div>
-            <div className="dash-card-title">📤 Submission Portal</div>
+            <div className="dash-card-title">Submission Portal</div>
             <div className="dash-card-subtitle">
               View available submission points and manage your proposals
             </div>
@@ -643,7 +643,7 @@ export default function StudentSubmissionTab() {
                   <div className="sub-point-footer">
                     {point.deadline && (
                       <span className={`sub-deadline-chip ${passed ? 'passed' : ''}`}>
-                        ⏰ {formatDate(point.deadline)}
+                        {formatDate(point.deadline)}
                       </span>
                     )}
                     {point.hasSubmitted ? (

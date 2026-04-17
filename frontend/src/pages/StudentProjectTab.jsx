@@ -61,7 +61,7 @@ export default function StudentProjectTab() {
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         marginBottom: 16, padding: '10px 16px',
-        background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+        background: 'linear-gradient(135deg,#10b981,#059669)',
         borderRadius: 10, color: '#fff',
       }}>
         <div style={{ display: 'flex', gap: 24 }}>
@@ -115,7 +115,7 @@ export default function StudentProjectTab() {
                         {sub.status}
                       </span>
                       {sub.matchedSupervisor && (
-                        <span title="Supervisor matched" style={{ fontSize: 16 }}>🔗</span>
+                        <span title="Supervisor matched" style={{ fontSize: 16 }}>[M]</span>
                       )}
                     </div>
                   </td>
@@ -163,7 +163,7 @@ function RevealCard({ supervisor }) {
       <div className="flip-card-inner">
         {/* FRONT */}
         <div className="flip-card-front">
-          <div style={{ fontSize: 40, marginBottom: 10 }}>🎊</div>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>*</div>
           <div style={{ fontWeight: 700, fontSize: 18 }}>Supervisor Matched!</div>
           <button className="reveal-btn" onClick={() => setIsFlipped(true)}>
             Tap to reveal

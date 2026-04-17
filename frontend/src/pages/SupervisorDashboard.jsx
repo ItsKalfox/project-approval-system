@@ -46,7 +46,7 @@ export default function SupervisorDashboard() {
           {activeTab === 'my-expertise' && (
             <div className="tab-content">
               <div className="dash-card">
-                <div className="dash-card-title">🔬 My Expertise</div>
+                <div className="dash-card-title">My Expertise</div>
                 <p style={{ color: 'var(--gray-500)', fontSize: 14, lineHeight: 1.7 }}>
                   Manage your research areas and areas of expertise so students can find
                   the right supervisor for their project.

@@ -312,7 +312,7 @@ const [confirmProject, setConfirmProject] = useState(null);
                   <h4>Proposal PDF</h4>
                   {!pdfUrl
                     ? <button className="btn btn-secondary" onClick={loadPdf} disabled={pdfLoading}>
-                        {pdfLoading ? 'Loading…' : '📄 View Proposal'}
+                        {pdfLoading ? 'Loading...' : 'View Proposal'}
                       </button>
                     : <iframe src={pdfUrl} title="Proposal PDF" className="pdf-viewer" />
                   }

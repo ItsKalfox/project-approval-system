@@ -75,11 +75,11 @@ export default function SupervisorSubmissionsTab() {
           {/* Front */}
           <div style={{
             position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
-            background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+            background: 'linear-gradient(135deg,#10b981,#059669)',
             borderRadius: 10, display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center', gap: 6, color: '#fff',
           }}>
-            <span style={{ fontSize: 26 }}>🎊</span>
+            <span style={{ fontSize: 26 }}>*</span>
             <span style={{ fontWeight: 700, fontSize: 14 }}>Student Identity Revealed!</span>
             <button
               onClick={() => setFlipped(true)}
@@ -175,7 +175,7 @@ export default function SupervisorSubmissionsTab() {
             <div className="submissions-section">
               <div className="submissions-section-header">
                 <span className="submissions-section-title" style={{ color: '#6366f1', fontWeight: 700 }}>
-                  🔗 Matched Projects
+                  Matched Projects
                 </span>
                 <span className="submissions-count matched-count"
                   style={{ background: '#6366f1', color: '#fff', borderRadius: 20, padding: '2px 10px', fontSize: 13 }}>
@@ -205,7 +205,7 @@ export default function SupervisorSubmissionsTab() {
             <div className="submissions-section">
               <div className="submissions-section-header">
                 <span className="submissions-section-title" style={{ color: '#f59e0b', fontWeight: 700 }}>
-                  ⏳ Pending Reviews
+                  Pending Reviews
                 </span>
                 <span className="submissions-count pending-count"
                   style={{ background: '#f59e0b', color: '#fff', borderRadius: 20, padding: '2px 10px', fontSize: 13 }}>
@@ -276,7 +276,7 @@ export default function SupervisorSubmissionsTab() {
                   <h4>Proposal PDF</h4>
                   {!pdfUrl
                     ? <button className="btn btn-secondary" onClick={loadPdf} disabled={pdfLoading}>
-                        {pdfLoading ? 'Loading…' : '📄 View Proposal'}
+                        {pdfLoading ? 'Loading...' : 'View Proposal'}
                       </button>
                     : <iframe src={pdfUrl} title="Proposal PDF" className="pdf-viewer" />
                   }
