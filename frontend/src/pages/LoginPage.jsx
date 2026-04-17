@@ -35,6 +35,7 @@ export default function LoginPage() {
       if (role === 'STUDENT') navigate('/dashboard/student');
       else if (role === 'SUPERVISOR') navigate('/dashboard/supervisor');
       else if (role === 'MODULE LEADER') navigate('/dashboard/module-leader');
+      else if (role === 'ADMIN') navigate('/dashboard/admin');
       else navigate('/dashboard/student');
     } catch (err) {
       const msg = err.response?.data?.message || 'Login failed. Please try again.';

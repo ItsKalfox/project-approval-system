@@ -4,6 +4,7 @@ import ForgotPasswordPage   from './pages/ForgotPasswordPage';
 import StudentDashboard     from './pages/StudentDashboard';
 import SupervisorDashboard  from './pages/SupervisorDashboard';
 import ModuleLeaderDashboard from './pages/ModuleLeaderDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 
 /* Guard — redirects to login if no token in storage */
 function ProtectedRoute({ children }) {
@@ -31,6 +32,9 @@ export default function App() {
         } />
         <Route path="/dashboard/module-leader" element={
           <ProtectedRoute><ModuleLeaderDashboard /></ProtectedRoute>
+        } />
+        <Route path="/dashboard/admin" element={
+          <ProtectedRoute><AdminDashboard /></ProtectedRoute>
         } />
 
         {/* Catch-all */}

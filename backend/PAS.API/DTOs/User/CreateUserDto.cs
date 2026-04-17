@@ -7,7 +7,7 @@ public class CreateUserDto
     public string Password { get; set; } = string.Empty;
 
     /// <summary>
-    /// Accepted values: "STUDENT", "SUPERVISOR", "MODULE LEADER"
+    /// Accepted values: "STUDENT", "SUPERVISOR", "MODULE LEADER", "ADMIN"
     /// </summary>
     public string Role { get; set; } = string.Empty;
 

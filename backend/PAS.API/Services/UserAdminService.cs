@@ -12,7 +12,7 @@ namespace PAS.API.Services;
 public class UserAdminService : IUserAdminService
 {
     private static readonly HashSet<string> ValidRoles =
-        new(StringComparer.OrdinalIgnoreCase) { "STUDENT", "SUPERVISOR", "MODULE LEADER" };
+        new(StringComparer.OrdinalIgnoreCase) { "STUDENT", "SUPERVISOR", "MODULE LEADER", "ADMIN" };
 
     private readonly PASDbContext _db;
 
@@ -30,7 +30,7 @@ public class UserAdminService : IUserAdminService
         var normalizedRole = dto.Role.Trim().ToUpperInvariant();
         if (!ValidRoles.Contains(normalizedRole))
             throw new ArgumentException(
-                $"Invalid role '{dto.Role}'. Must be one of: STUDENT, SUPERVISOR, MODULE LEADER.");
+                $"Invalid role '{dto.Role}'. Must be one of: STUDENT, SUPERVISOR, MODULE LEADER, ADMIN.");
 
         // ── Validate batch for students ────────────────────────────────────
         if (normalizedRole == "STUDENT" && string.IsNullOrWhiteSpace(dto.Batch))
@@ -83,6 +83,10 @@ public class UserAdminService : IUserAdminService
 
             case "MODULE LEADER":
                 _db.ModuleLeaders.Add(new ModuleLeader { UserId = user.UserId });
+                break;
+
+            case "ADMIN":
+                _db.Admins.Add(new Admin { UserId = user.UserId });
                 break;
         }
 
