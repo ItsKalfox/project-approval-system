@@ -184,8 +184,8 @@ public async Task<IEnumerable<RevealedProjectDto>> GetMatchedProjectsWithStudent
             .ThenInclude(p => p.ResearchArea)
         .Include(m => m.Project)
             .ThenInclude(p => p.Group)
-                .ThenInclude(g => g!.Leader)
-                    .ThenInclude(s => s!.User)
+                .ThenInclude(g => g.Leader)
+                    .ThenInclude(s => s.User)
         .Where(m => !m.Project.IsDeleted)
         .OrderByDescending(m => m.MatchDate)
         .Select(m => new RevealedProjectDto
@@ -201,9 +201,12 @@ public async Task<IEnumerable<RevealedProjectDto>> GetMatchedProjectsWithStudent
             HasProposalPdf           = m.Project.BlobFilePath != null,
             SubmittedAt              = m.Project.SubmittedAt,
             AlreadyExpressedInterest = true,
-            StudentName              = m.Project.Group != null && m.Project.Group.Leader != null ? m.Project.Group.Leader.User.Name : string.Empty,
-            StudentEmail             = m.Project.Group != null && m.Project.Group.Leader != null ? m.Project.Group.Leader.User.Email : string.Empty,
-            StudentBatch             = m.Project.Group != null && m.Project.Group.Leader != null ? m.Project.Group.Leader.Batch : string.Empty,
+            StudentName              = m.Project.Group != null && m.Project.Group.Leader != null
+                                        ? m.Project.Group.Leader.User.Name : string.Empty,
+            StudentEmail             = m.Project.Group != null && m.Project.Group.Leader != null
+                                        ? m.Project.Group.Leader.User.Email : string.Empty,
+            StudentBatch             = m.Project.Group != null && m.Project.Group.Leader != null
+                                        ? m.Project.Group.Leader.Batch : string.Empty,
             MatchedAt                = m.MatchDate
         })
         .ToListAsync();
