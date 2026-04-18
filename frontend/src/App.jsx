@@ -5,6 +5,7 @@ import StudentDashboard     from './pages/StudentDashboard';
 import SupervisorDashboard  from './pages/SupervisorDashboard';
 import ModuleLeaderDashboard from './pages/ModuleLeaderDashboard';
 import SystemAdminDashboard  from './pages/SystemAdminDashboard';
+import AdminDashboard       from './pages/AdminDashboard';
 
 function normalizeRole(role) {
   const value = String(role ?? '')
@@ -13,8 +14,8 @@ function normalizeRole(role) {
     .trim()
     .toUpperCase();
 
-  if (value === 'ADMIN' || value === 'SYSTEMADMIN' || value === 'SYSTEM ADMIN') {
-    return 'SYSTEM ADMIN';
+  if (value === 'ADMIN' || value === 'SYSTEMADMIN' || value === 'SYSTEM ADMIN' || value === 'ADMIN') {
+    return 'ADMIN';
   }
 
   if (value === 'MODULELEADER' || value === 'MODULE LEADER') {
@@ -77,7 +78,7 @@ export default function App() {
           <ProtectedRoute allowedRoles={['MODULE LEADER']}><ModuleLeaderDashboard /></ProtectedRoute>
         } />
         <Route path="/dashboard/system-admin" element={
-          <ProtectedRoute allowedRoles={['SYSTEM ADMIN']}><SystemAdminDashboard /></ProtectedRoute>
+          <ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>
         } />
 
         {/* Catch-all */}

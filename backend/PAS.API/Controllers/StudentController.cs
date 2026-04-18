@@ -6,12 +6,12 @@ using PAS.API.Services;
 namespace PAS.API.Controllers;
 
 /// <summary>
-/// Student record management — accessible only by MODULE LEADER role.
+/// Student record management — accessible only by MODULE LEADER or ADMIN role.
 /// All endpoints require a valid Bearer JWT token.
 /// </summary>
 [ApiController]
 [Route("api/students")]
-[Authorize(Policy = "ModuleLeaderOnly")]
+[Authorize(Policy = "ModuleLeaderOrAdmin")]
 public class StudentController : ControllerBase
 {
     private readonly IStudentService _studentService;

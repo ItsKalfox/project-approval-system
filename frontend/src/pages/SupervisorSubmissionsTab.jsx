@@ -25,8 +25,8 @@ export default function SupervisorSubmissionsTab({ selectedAreas = [] }) {
         api.get(`/supervisor/dashboard/submissions${queryString ? '?' + queryString : ''}`),
         api.get('/supervisor/dashboard/matched-revealed'),
       ]);
-      setMatchedProjects(subRes.data.data?.matchedProjects ?? []);
-      setPendingReviews(subRes.data.data?.pendingReviews ?? []);
+      setMatchedProjects(subRes.data.data?.MatchedProjects ?? subRes.data.data?.matchedProjects ?? []);
+      setPendingReviews(subRes.data.data?.PendingReviews ?? subRes.data.data?.pendingReviews ?? []);
       const map = {};
       for (const p of (revealRes.data.data ?? [])) {
         map[p.projectId] = { studentName: p.studentName, studentEmail: p.studentEmail, studentBatch: p.studentBatch, matchedAt: p.matchedAt };

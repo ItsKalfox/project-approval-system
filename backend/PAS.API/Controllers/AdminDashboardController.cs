@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PAS.API.Data;
@@ -7,6 +8,7 @@ namespace PAS.API.Controllers;
 
 [ApiController]
 [Route("api/admin/dashboard")]
+[Authorize(Policy = "SystemAdminOnly")]
 public class AdminDashboardController : ControllerBase
 {
     private readonly PASDbContext _db;

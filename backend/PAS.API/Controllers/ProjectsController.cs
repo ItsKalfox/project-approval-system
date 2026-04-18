@@ -8,7 +8,7 @@ namespace PAS.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Policy = "ModuleLeaderOnly")]
+[Authorize(Policy = "ModuleLeaderOrAdmin")]
 public class ProjectsController : ControllerBase
 {
     private readonly PASDbContext _context;

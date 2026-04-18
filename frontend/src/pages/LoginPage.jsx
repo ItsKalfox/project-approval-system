@@ -13,7 +13,7 @@ function normalizeRole(role) {
     .toUpperCase();
 
   if (value === 'ADMIN' || value === 'SYSTEMADMIN' || value === 'SYSTEM ADMIN') {
-    return 'SYSTEM ADMIN';
+    return 'ADMIN';
   }
 
   if (value === 'MODULELEADER' || value === 'MODULE LEADER') {
@@ -68,7 +68,7 @@ export default function LoginPage() {
       if (normalizedRole === 'STUDENT') navigate('/dashboard/student');
       else if (normalizedRole === 'SUPERVISOR') navigate('/dashboard/supervisor');
       else if (normalizedRole === 'MODULE LEADER') navigate('/dashboard/module-leader');
-      else if (normalizedRole === 'SYSTEM ADMIN') navigate('/dashboard/system-admin');
+      else if (normalizedRole === 'ADMIN') navigate('/dashboard/system-admin');
       else {
         localStorage.removeItem('pas_token');
         localStorage.removeItem('pas_user');

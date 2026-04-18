@@ -12,4 +12,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Log all responses for debugging
+api.interceptors.response.use(
+  (response) => {
+    console.log(`API ${response.config.method?.toUpperCase()} ${response.config.url}:`, response.status, response.data);
+    return response;
+  },
+  (error) => {
+    console.log(`API Error ${error.config?.method?.toUpperCase()} ${error.config?.url}:`, error.response?.status, error.response?.data);
+    return Promise.reject(error);
+  }
+);
+
 export default api;
