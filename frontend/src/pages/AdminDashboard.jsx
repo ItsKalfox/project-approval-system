@@ -1,4 +1,8 @@
 import DashboardShell from './DashboardShell';
+import StudentManagementTab from './StudentManagementTab';
+import ModuleLeaderManagementTab from './ModuleLeaderManagementTab';
+import SupervisorManagementTab from './SupervisorManagementTab';
+import OverviewAnalytics from './OverviewAnalytics';
 
 const TABS = [
   { id: 'overview',     label: 'Overview' },
@@ -17,19 +21,19 @@ export default function AdminDashboard() {
       {({ activeTab }) => (
         <div className="tab-placeholder-content" style={{ padding: '2rem', textAlign: 'center', background: '#fff', borderRadius: '8px', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
           {activeTab === 'overview' && (
-            <h3>Overview Tab (To be implemented)</h3>
+            <OverviewAnalytics />
           )}
 
           {activeTab === 'student-mgmt' && (
-            <h3>Student Management Tab (To be implemented)</h3>
+            <StudentManagementTab />
           )}
 
           {activeTab === 'module-leader-mgmt' && (
-            <h3>Module Leader Management Tab (To be implemented)</h3>
+            <ModuleLeaderManagementTab />
           )}
 
           {activeTab === 'supervisor-mgmt' && (
-            <h3>Supervisor Management Tab (To be implemented)</h3>
+            <SupervisorManagementTab />
           )}
         </div>
       )}

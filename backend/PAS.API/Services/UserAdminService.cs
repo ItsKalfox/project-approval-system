@@ -15,10 +15,12 @@ public class UserAdminService : IUserAdminService
         new(StringComparer.OrdinalIgnoreCase) { "STUDENT", "SUPERVISOR", "MODULE LEADER", "ADMIN" };
 
     private readonly PASDbContext _db;
+    private readonly IEmailService _emailService;
 
-    public UserAdminService(PASDbContext db)
+    public UserAdminService(PASDbContext db, IEmailService emailService)
     {
         _db = db;
+        _emailService = emailService;
     }
 
     // ─────────────────────────────────────────────
@@ -41,8 +43,19 @@ public class UserAdminService : IUserAdminService
             throw new ArgumentException("'Name' is required.");
         if (string.IsNullOrWhiteSpace(dto.Email))
             throw new ArgumentException("'Email' is required.");
-        if (string.IsNullOrWhiteSpace(dto.Password))
-            throw new ArgumentException("'Password' is required.");
+
+        // ── Auto-generate password for MODULE LEADER ───────────────────────
+        string plainPassword;
+        if (normalizedRole == "MODULE LEADER" && string.IsNullOrWhiteSpace(dto.Password))
+        {
+            plainPassword = GeneratePassword();
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(dto.Password))
+                throw new ArgumentException("'Password' is required.");
+            plainPassword = dto.Password;
+        }
 
         // ── Duplicate email check ──────────────────────────────────────────
         var emailExists = await _db.Users
@@ -52,7 +65,7 @@ public class UserAdminService : IUserAdminService
                 $"A user with email '{dto.Email}' already exists.");
 
         // ── Hash password ──────────────────────────────────────────────────
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password, workFactor: 12);
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(plainPassword, workFactor: 12);
 
         // ── Build User entity (UserId is auto-incremented by DB) ───────────
         var user = new User
@@ -91,6 +104,20 @@ public class UserAdminService : IUserAdminService
         }
 
         await _db.SaveChangesAsync();
+
+        // ── Send welcome email for MODULE LEADER ───────────────────────────
+        if (normalizedRole == "MODULE LEADER")
+        {
+            try
+            {
+                await _emailService.SendWelcomeEmailAsync(user.Email, user.Name, plainPassword);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EmailService] Failed to send welcome email to {user.Email}: {ex.Message}");
+                // Don't throw - user is already created, just log the error
+            }
+        }
 
         return MapToResponse(user, batch);
     }
@@ -175,4 +202,35 @@ public class UserAdminService : IUserAdminService
         CreatedAt = user.CreatedAt,
         Batch     = batch
     };
+
+    private static string GeneratePassword()
+    {
+        const string upper   = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        const string lower   = "abcdefghjkmnpqrstuvwxyz";
+        const string digits  = "23456789";
+        const string special = "!@#$%&*";
+        const string all     = upper + lower + digits + special;
+
+        var rng      = System.Security.Cryptography.RandomNumberGenerator.Create();
+        var buffer   = new byte[12];
+        rng.GetBytes(buffer);
+
+        var chars = new char[12];
+        chars[0] = upper  [buffer[0]  % upper.Length];
+        chars[1] = lower  [buffer[1]  % lower.Length];
+        chars[2] = digits [buffer[2]  % digits.Length];
+        chars[3] = special[buffer[3]  % special.Length];
+
+        for (int i = 4; i < 12; i++)
+            chars[i] = all[buffer[i] % all.Length];
+
+        rng.GetBytes(buffer);
+        for (int i = 11; i > 0; i--)
+        {
+            int j    = buffer[i] % (i + 1);
+            (chars[i], chars[j]) = (chars[j], chars[i]);
+        }
+
+        return new string(chars);
+    }
 }

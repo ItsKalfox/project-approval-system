@@ -4,12 +4,56 @@ import ForgotPasswordPage   from './pages/ForgotPasswordPage';
 import StudentDashboard     from './pages/StudentDashboard';
 import SupervisorDashboard  from './pages/SupervisorDashboard';
 import ModuleLeaderDashboard from './pages/ModuleLeaderDashboard';
-import AdminDashboard from './pages/AdminDashboard';
+import SystemAdminDashboard  from './pages/SystemAdminDashboard';
+import AdminDashboard       from './pages/AdminDashboard';
 
-/* Guard — redirects to login if no token in storage */
-function ProtectedRoute({ children }) {
+function normalizeRole(role) {
+  const value = String(role ?? '')
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toUpperCase();
+
+  if (value === 'ADMIN' || value === 'SYSTEMADMIN' || value === 'SYSTEM ADMIN' || value === 'ADMIN') {
+    return 'ADMIN';
+  }
+
+  if (value === 'MODULELEADER' || value === 'MODULE LEADER') {
+    return 'MODULE LEADER';
+  }
+
+  return value;
+}
+
+function getCurrentUser() {
+  const rawUser = localStorage.getItem('pas_user');
+  if (!rawUser) return null;
+
+  try {
+    return JSON.parse(rawUser);
+  } catch {
+    return null;
+  }
+}
+
+/* Guard — redirects to login if session is missing or role is blocked */
+function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem('pas_token');
-  return token ? children : <Navigate to="/login" replace />;
+  const user = getCurrentUser();
+
+  if (!token || !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles?.length) {
+    const normalizedUserRole = normalizeRole(user.role);
+    const normalizedAllowedRoles = allowedRoles.map(normalizeRole);
+    if (!normalizedAllowedRoles.includes(normalizedUserRole)) {
+      return <Navigate to="/login" replace />;
+    }
+  }
+
+  return children;
 }
 
 export default function App() {
@@ -25,16 +69,16 @@ export default function App() {
 
         {/* Protected dashboards */}
         <Route path="/dashboard/student" element={
-          <ProtectedRoute><StudentDashboard /></ProtectedRoute>
+          <ProtectedRoute allowedRoles={['STUDENT']}><StudentDashboard /></ProtectedRoute>
         } />
         <Route path="/dashboard/supervisor" element={
-          <ProtectedRoute><SupervisorDashboard /></ProtectedRoute>
+          <ProtectedRoute allowedRoles={['SUPERVISOR']}><SupervisorDashboard /></ProtectedRoute>
         } />
         <Route path="/dashboard/module-leader" element={
-          <ProtectedRoute><ModuleLeaderDashboard /></ProtectedRoute>
+          <ProtectedRoute allowedRoles={['MODULE LEADER']}><ModuleLeaderDashboard /></ProtectedRoute>
         } />
-        <Route path="/dashboard/admin" element={
-          <ProtectedRoute><AdminDashboard /></ProtectedRoute>
+        <Route path="/dashboard/system-admin" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>
         } />
 
         {/* Catch-all */}

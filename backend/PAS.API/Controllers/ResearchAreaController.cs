@@ -7,7 +7,7 @@ namespace PAS.API.Controllers;
 
 [ApiController]
 [Route("api/research-areas")]
-[Authorize(Policy = "ModuleLeaderOnly")]
+[Authorize(Policy = "ModuleLeaderOrAdmin")]
 public class ResearchAreaController : ControllerBase
 {
     private readonly IResearchAreaService _researchAreaService;

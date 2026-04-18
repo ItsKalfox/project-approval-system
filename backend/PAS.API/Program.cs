@@ -28,6 +28,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<ISupervisorService, SupervisorService>();
+builder.Services.AddScoped<IModuleLeaderService, ModuleLeaderService>();
 builder.Services.AddScoped<IResearchAreaService, ResearchAreaService>();
 builder.Services.AddScoped<ICourseworkService, CourseworkService>();
 builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
@@ -61,15 +62,22 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    // Accessible by MODULE LEADER role (extend this list to add more roles later)
+    // Accessible by MODULE LEADER role
     options.AddPolicy("ModuleLeaderOnly", policy =>
         policy.RequireRole("MODULE LEADER"));
+
+    // Accessible by MODULE LEADER or ADMIN
+    options.AddPolicy("ModuleLeaderOrAdmin", policy =>
+        policy.RequireRole("MODULE LEADER", "ADMIN"));
 
     options.AddPolicy("StudentOnly", policy =>
         policy.RequireRole("STUDENT"));
         
-        options.AddPolicy("SupervisorOnly", policy =>
-    policy.RequireRole("SUPERVISOR"));
+    options.AddPolicy("SupervisorOnly", policy =>
+        policy.RequireRole("SUPERVISOR"));
+
+    options.AddPolicy("SystemAdminOnly", policy =>
+        policy.RequireRole("ADMIN"));
 });
 
 // ── CORS (allow Vite dev server) ─────────────────────────────────────────

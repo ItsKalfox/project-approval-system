@@ -1,66 +1,33 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PAS.API.DTOs.Supervisor;
+using PAS.API.DTOs.ModuleLeader;
 using PAS.API.Services;
 
 namespace PAS.API.Controllers;
 
 [ApiController]
-[Route("api/supervisors")]
-[Authorize(Policy = "ModuleLeaderOrAdmin")]
-public class SupervisorController : ControllerBase
+[Route("api/module-leaders")]
+[Authorize(Policy = "SystemAdminOnly")]
+public class ModuleLeaderController : ControllerBase
 {
-    private readonly ISupervisorService _supervisorService;
+    private readonly IModuleLeaderService _moduleLeaderService;
 
-    public SupervisorController(ISupervisorService supervisorService)
+    public ModuleLeaderController(IModuleLeaderService moduleLeaderService)
     {
-        _supervisorService = supervisorService;
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> CreateSupervisor([FromBody] CreateSupervisorDto dto)
-    {
-        try
-        {
-            var (supervisor, emailSent) = await _supervisorService.CreateSupervisorAsync(dto);
-            var message = emailSent
-                ? "Supervisor created successfully. Login credentials have been sent to their email."
-                : "Supervisor created successfully, but failed to send credentials email.";
-            return StatusCode(StatusCodes.Status201Created, new
-            {
-                message = message,
-                data    = supervisor
-            });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, new
-            {
-                message = "An unexpected error occurred.",
-                detail  = ex.Message
-            });
-        }
+        _moduleLeaderService = moduleLeaderService;
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllSupervisors(
+    public async Task<IActionResult> GetAllModuleLeaders(
         [FromQuery] int page     = 1,
         [FromQuery] int pageSize = 10)
     {
         try
         {
-            var result = await _supervisorService.GetAllSupervisorsAsync(page, pageSize);
+            var result = await _moduleLeaderService.GetAllModuleLeadersAsync(page, pageSize);
             return Ok(new
             {
-                message = "Supervisors retrieved successfully.",
+                message = "Module leaders retrieved successfully.",
                 data    = result
             });
         }
@@ -75,14 +42,14 @@ public class SupervisorController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetSupervisor(int id)
+    public async Task<IActionResult> GetModuleLeader(int id)
     {
         try
         {
-            var result = await _supervisorService.GetSupervisorAsync(id);
+            var result = await _moduleLeaderService.GetModuleLeaderAsync(id);
             return Ok(new
             {
-                message = "Supervisor retrieved successfully.",
+                message = "Module leader retrieved successfully.",
                 data    = result
             });
         }
@@ -101,14 +68,14 @@ public class SupervisorController : ControllerBase
     }
 
     [HttpPatch("{id:int}")]
-    public async Task<IActionResult> UpdateSupervisor(int id, [FromBody] UpdateSupervisorDto dto)
+    public async Task<IActionResult> UpdateModuleLeader(int id, [FromBody] UpdateModuleLeaderDto dto)
     {
         try
         {
-            var result = await _supervisorService.UpdateSupervisorAsync(id, dto);
+            var result = await _moduleLeaderService.UpdateModuleLeaderAsync(id, dto);
             return Ok(new
             {
-                message = "Supervisor updated successfully.",
+                message = "Module leader updated successfully.",
                 data    = result
             });
         }
@@ -131,12 +98,12 @@ public class SupervisorController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteSupervisor(int id)
+    public async Task<IActionResult> DeleteModuleLeader(int id)
     {
         try
         {
-            await _supervisorService.DeleteSupervisorAsync(id);
-            return Ok(new { message = $"Supervisor '{id}' deleted successfully." });
+            await _moduleLeaderService.DeleteModuleLeaderAsync(id);
+            return Ok(new { message = $"Module leader '{id}' deleted successfully." });
         }
         catch (KeyNotFoundException ex)
         {
@@ -153,16 +120,20 @@ public class SupervisorController : ControllerBase
     }
 
     [HttpPost("{id:int}/deactivate")]
-    public async Task<IActionResult> DeactivateSupervisor(int id)
+    public async Task<IActionResult> DeactivateModuleLeader(int id)
     {
         try
         {
-            await _supervisorService.DeactivateSupervisorAsync(id);
-            return Ok(new { message = $"Supervisor '{id}' has been deactivated." });
+            await _moduleLeaderService.DeactivateModuleLeaderAsync(id);
+            return Ok(new { message = $"Module leader '{id}' has been deactivated." });
         }
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
+        }
+        catch (NotImplementedException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -175,16 +146,20 @@ public class SupervisorController : ControllerBase
     }
 
     [HttpPost("{id:int}/reactivate")]
-    public async Task<IActionResult> ReactivateSupervisor(int id)
+    public async Task<IActionResult> ReactivateModuleLeader(int id)
     {
         try
         {
-            await _supervisorService.ReactivateSupervisorAsync(id);
-            return Ok(new { message = $"Supervisor '{id}' has been reactivated." });
+            await _moduleLeaderService.ReactivateModuleLeaderAsync(id);
+            return Ok(new { message = $"Module leader '{id}' has been reactivated." });
         }
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
+        }
+        catch (NotImplementedException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -197,14 +172,14 @@ public class SupervisorController : ControllerBase
     }
 
     [HttpPost("{id:int}/reset-password")]
-    public async Task<IActionResult> ResetSupervisorPassword(int id)
+    public async Task<IActionResult> ResetModuleLeaderPassword(int id)
     {
         try
         {
-            var (passwordReset, emailSent) = await _supervisorService.ResetSupervisorPasswordAsync(id);
+            var (passwordReset, emailSent) = await _moduleLeaderService.ResetModuleLeaderPasswordAsync(id);
             var message = emailSent
-                ? $"Password for supervisor '{id}' has been reset and sent to their email."
-                : $"Password for supervisor '{id}' has been reset, but failed to send email.";
+                ? $"Password for module leader '{id}' has been reset and sent to their email."
+                : $"Password for module leader '{id}' has been reset, but failed to send email.";
             return Ok(new
             {
                 message = message

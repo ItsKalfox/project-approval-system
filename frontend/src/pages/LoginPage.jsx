@@ -5,6 +5,24 @@ import api from '../api';
 // Hero image from Figma
 const heroImage = "https://www.figma.com/api/mcp/asset/bb9f4434-3775-48a2-96ec-63b6c9c704c4";
 
+function normalizeRole(role) {
+  const value = String(role ?? '')
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toUpperCase();
+
+  if (value === 'ADMIN' || value === 'SYSTEMADMIN' || value === 'SYSTEM ADMIN') {
+    return 'ADMIN';
+  }
+
+  if (value === 'MODULELEADER' || value === 'MODULE LEADER') {
+    return 'MODULE LEADER';
+  }
+
+  return value;
+}
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
@@ -22,23 +40,42 @@ export default function LoginPage() {
       setError('Please enter your email and password.');
       return;
     }
+
     setLoading(true);
     try {
       const res = await api.post('/auth/login', form);
-      const { token, userId, name, email, role, batch } = res.data.data;
+      const payload = res.data?.data ?? {};
+
+      // Support both camelCase and PascalCase API payloads.
+      const token = payload.token ?? payload.Token;
+      const userId = payload.userId ?? payload.UserId;
+      const name = payload.name ?? payload.Name;
+      const email = payload.email ?? payload.Email;
+      const role = payload.role ?? payload.Role;
+      const batch = payload.batch ?? payload.Batch;
+
+      if (!token || !role) {
+        throw new Error('Login response is missing required session fields.');
+      }
+
+      const normalizedRole = normalizeRole(role);
 
       // Persist session
       localStorage.setItem('pas_token', token);
-      localStorage.setItem('pas_user', JSON.stringify({ userId, name, email, role, batch }));
+      localStorage.setItem('pas_user', JSON.stringify({ userId, name, email, role: normalizedRole, batch }));
 
       // Route by role
-      if (role === 'STUDENT') navigate('/dashboard/student');
-      else if (role === 'SUPERVISOR') navigate('/dashboard/supervisor');
-      else if (role === 'MODULE LEADER') navigate('/dashboard/module-leader');
-      else if (role === 'ADMIN') navigate('/dashboard/admin');
-      else navigate('/dashboard/student');
+      if (normalizedRole === 'STUDENT') navigate('/dashboard/student');
+      else if (normalizedRole === 'SUPERVISOR') navigate('/dashboard/supervisor');
+      else if (normalizedRole === 'MODULE LEADER') navigate('/dashboard/module-leader');
+      else if (normalizedRole === 'ADMIN') navigate('/dashboard/system-admin');
+      else {
+        localStorage.removeItem('pas_token');
+        localStorage.removeItem('pas_user');
+        setError(`Your account role '${role}' is not recognized for this app.`);
+      }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed. Please try again.';
+      const msg = err.response?.data?.message || err.message || 'Login failed. Please try again.';
       setError(msg);
     } finally {
       setLoading(false);
