@@ -8,16 +8,18 @@ export default function AllocationOversightTab() {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
   const [showIntervention, setShowIntervention] = useState(false);
-  const [interventionMode, setInterventionMode] = useState(false);
   const [matchedStudents, setMatchedStudents] = useState([]);
-  const [availableProjects, setAvailableProjects] = useState([]);
   const [availableSupervisors, setAvailableSupervisors] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState('');
-  const [selectedProject, setSelectedProject] = useState('');
   const [selectedSupervisor, setSelectedSupervisor] = useState('');
   const [confirmModal, setConfirmModal] = useState({ show: false, studentId: '', studentName: '', projectId: '', projectName: '', supervisorId: '', supervisorName: '' });
   const [interventionLoading, setInterventionLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ message: '', type: '' });
+  const [studentSearch, setStudentSearch] = useState('');
+  const [supervisorSearch, setSupervisorSearch] = useState('');
+  const [projectSearch, setProjectSearch] = useState('');
+  const [selectedProject, setSelectedProject] = useState('');
+  const [availableProjects, setAvailableProjects] = useState([]);
 
   useEffect(() => {
     fetchAllocations();
@@ -41,13 +43,9 @@ export default function AllocationOversightTab() {
       });
       const text = await res.text();
       if (!res.ok) {
-        if (res.status === 404) {
-          setError('Blind match endpoint not implemented yet. Create the allocations controller.');
-          setLoading(false);
-          return;
-        }
-        const data = text ? JSON.parse(text) : { message: 'Failed to fetch allocations' };
-        throw new Error(data.message || 'Failed to fetch');
+        setError(`Status ${res.status}: ${text}`);
+        setLoading(false);
+        return;
       }
       const data = JSON.parse(text);
       setAllocations(data.data || []);
@@ -103,9 +101,12 @@ export default function AllocationOversightTab() {
 
   const openInterventionTools = async () => {
     setShowIntervention(true);
-    setInterventionMode(true);
     setInterventionLoading(true);
     setSnackbar({ message: '', type: '' });
+    setStudentSearch('');
+    setSupervisorSearch('');
+    setProjectSearch('');
+    setSelectedProject('');
     const token = localStorage.getItem('pas_token');
     if (!token) {
       setError('Not authenticated. Please log in.');
@@ -113,39 +114,49 @@ export default function AllocationOversightTab() {
       return;
     }
     try {
-      const [studentsRes, projectsRes, supervisorsRes] = await Promise.all([
-        fetch(`${API}/api/allocations/students-with-matches`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API}/api/projects/available`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API}/api/supervisors`, { headers: { Authorization: `Bearer ${token}` } })
+      const [studentsRes, supervisorsRes] = await Promise.all([
+        fetch(`${API}/api/students?page=1&pageSize=1000`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API}/api/supervisors?page=1&pageSize=1000`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
-      
+
       let studentsData = [];
-      let projectsData = [];
       let supervisorsData = [];
-      
+      let projectsData = [];
+
       try {
-        const studentsJson = await studentsRes.json();
-        studentsData = Array.isArray(studentsJson?.data) ? studentsJson.data : [];
+        if (studentsRes.ok) {
+          const studentsJson = await studentsRes.json();
+          const sData = studentsJson?.data?.data ?? studentsJson?.data;
+          studentsData = Array.isArray(sData) ? sData : [];
+        }
       } catch { studentsData = []; }
-      
+
       try {
-        const projectsJson = await projectsRes.json();
-        projectsData = Array.isArray(projectsJson?.data) ? projectsJson.data : [];
-      } catch { projectsData = []; }
-      
-      try {
-        const supervisorsJson = await supervisorsRes.json();
-        const supData = supervisorsJson?.data;
-        supervisorsData = Array.isArray(supData) ? supData : (Array.isArray(supData?.Data) ? supData.Data : []);
+        if (supervisorsRes.ok) {
+          const supervisorsJson = await supervisorsRes.json();
+          const supData = supervisorsJson?.data?.data ?? supervisorsJson?.data;
+          supervisorsData = Array.isArray(supData) ? supData : [];
+        }
       } catch { supervisorsData = []; }
-      
+
+      try {
+        const projectsRes = await fetch(`${API}/api/projects?page=1&pageSize=1000`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (projectsRes.ok) {
+          const projectsJson = await projectsRes.json();
+          const pData = projectsJson?.data?.data ?? projectsJson?.data;
+          projectsData = Array.isArray(pData) ? pData : [];
+        }
+      } catch { projectsData = []; }
+
       setMatchedStudents(studentsData);
-      setAvailableProjects(projectsData);
       setAvailableSupervisors(supervisorsData);
-    } catch (err) {
+      setAvailableProjects(projectsData);
+    } catch {
       setSnackbar({ message: 'Failed to load intervention data', type: 'error' });
       setMatchedStudents([]);
-      setAvailableProjects([]);
       setAvailableSupervisors([]);
     } finally {
       setInterventionLoading(false);
@@ -153,21 +164,23 @@ export default function AllocationOversightTab() {
   };
 
   const handleReassignClick = () => {
-    if (!selectedStudent || !selectedProject || !selectedSupervisor) {
-      setSnackbar({ message: 'Please select student, project, and supervisor', type: 'error' });
+    if (!selectedStudent || !selectedSupervisor || !selectedProject) {
+      setSnackbar({ message: 'Please select student, project and supervisor', type: 'error' });
       return;
     }
-    const student = matchedStudents.find(s => s.id === selectedStudent);
-    const project = availableProjects.find(p => p.id === selectedProject);
-    const supervisor = availableSupervisors.find(s => s.id === selectedSupervisor);
+
+    const student = matchedStudents.find(s => String(s.id ?? s.userId ?? s.studentId) === String(selectedStudent));
+    const project = availableProjects.find(p => String(p.id ?? p.projectId) === String(selectedProject));
+    const supervisor = availableSupervisors.find(s => String(s.id ?? s.userId ?? s.supervisorId) === String(selectedSupervisor));
+
     setConfirmModal({
       show: true,
       studentId: selectedStudent,
-      studentName: student?.name || student?.studentName || 'Unknown',
+      studentName: student?.name || student?.studentName || student?.fullName || 'Unknown',
       projectId: selectedProject,
-      projectName: project?.name || 'Unknown',
+      projectName: project?.title || project?.name || 'Selected Project',
       supervisorId: selectedSupervisor,
-      supervisorName: supervisor?.name || 'Unknown'
+      supervisorName: supervisor?.name || supervisor?.fullName || 'Unknown'
     });
   };
 
@@ -179,7 +192,7 @@ export default function AllocationOversightTab() {
     }
     try {
       setInterventionLoading(true);
-      const res = await fetch(`${API}/api/allocations/reassign`, {
+      const res = await fetch(`${API}/api/allocations/reassign-supervisor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -195,11 +208,11 @@ export default function AllocationOversightTab() {
         const data = await res.json().catch(() => ({ message: 'Failed to reassign' }));
         throw new Error(data.message || 'Failed to reassign');
       }
-      setSnackbar({ message: 'Project reassigned successfully', type: 'success' });
+      setSnackbar({ message: 'Supervisor reassigned successfully', type: 'success' });
       setConfirmModal({ show: false, studentId: '', studentName: '', projectId: '', projectName: '', supervisorId: '', supervisorName: '' });
       setSelectedStudent('');
-      setSelectedProject('');
       setSelectedSupervisor('');
+      setSelectedProject('');
       fetchAllocations();
     } catch (err) {
       setSnackbar({ message: err.message, type: 'error' });
@@ -262,59 +275,106 @@ export default function AllocationOversightTab() {
             {interventionLoading ? (
               <div className="loading-state">Loading...</div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 16, alignItems: 'end', padding: '16px 0' }}>
-                <div>
-                  <label className="form-label">Select Student</label>
-                  <select
-                    className="form-input"
-                    value={selectedStudent}
-                    onChange={(e) => setSelectedStudent(e.target.value)}
-                  >
-                    <option value="">-- Select Student --</option>
-                    {matchedStudents.map(s => (
-                      <option key={s.id} value={s.id}>{s.name || s.studentName}</option>
-                    ))}
-                  </select>
+              <div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
+                  <div>
+                    <label className="form-label">Search Student</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Search by name..."
+                      value={studentSearch}
+                      onChange={(e) => setStudentSearch(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">Select Student</label>
+                    <select
+                      className="form-input"
+                      value={selectedStudent}
+                      onChange={(e) => setSelectedStudent(e.target.value)}
+                    >
+                      <option value="">-- Select Student --</option>
+                      {matchedStudents
+                        .filter(s => !studentSearch || (s.name || s.studentName || s.fullName || '').toLowerCase().includes(studentSearch.toLowerCase()))
+                        .map(s => {
+                          const studentId = s.userId ?? s.id ?? s.studentId;
+                          return <option key={studentId} value={studentId}>{s.name || s.studentName || s.fullName}</option>;
+                        })}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">Search Project</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Search by title..."
+                      value={projectSearch}
+                      onChange={(e) => setProjectSearch(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="form-label">Select New Project</label>
-                  <select
-                    className="form-input"
-                    value={selectedProject}
-                    onChange={(e) => setSelectedProject(e.target.value)}
-                  >
-                    <option value="">-- Select Project --</option>
-                    {availableProjects.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 16, alignItems: 'end' }}>
+                  <div>
+                    <label className="form-label">Select Project</label>
+                    <select
+                      className="form-input"
+                      value={selectedProject}
+                      onChange={(e) => setSelectedProject(e.target.value)}
+                    >
+                      <option value="">-- Select Project --</option>
+                      {availableProjects
+                        .filter(p => !projectSearch || (p.title || p.name || '').toLowerCase().includes(projectSearch.toLowerCase()))
+                        .map(p => {
+                          const projectId = p.id ?? p.projectId;
+                          return (
+                            <option key={projectId} value={projectId}>{p.title || p.name}</option>
+                          );
+                        })}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">Search Supervisor</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Search by name..."
+                      value={supervisorSearch}
+                      onChange={(e) => setSupervisorSearch(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">Select New Supervisor</label>
+                    <select
+                      className="form-input"
+                      value={selectedSupervisor}
+                      onChange={(e) => setSelectedSupervisor(e.target.value)}
+                    >
+                      <option value="">-- Select Supervisor --</option>
+                      {availableSupervisors
+                        .filter(s => !supervisorSearch || (s.name || s.fullName || '').toLowerCase().includes(supervisorSearch.toLowerCase()))
+                        .map(s => {
+                          const supervisorId = s.userId ?? s.id ?? s.supervisorId;
+                          return <option key={supervisorId} value={supervisorId}>{s.name || s.fullName}</option>;
+                        })}
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="form-label">Select New Supervisor</label>
-                  <select
-                    className="form-input"
-                    value={selectedSupervisor}
-                    onChange={(e) => setSelectedSupervisor(e.target.value)}
-                  >
-                    <option value="">-- Select Supervisor --</option>
-                    {availableSupervisors.map(s => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
+                <div style={{ marginTop: 16 }}>
+                    <button
+                      className="btn btn-warning"
+                      onClick={handleReassignClick}
+                      disabled={!selectedStudent || !selectedSupervisor || !selectedProject}
+                    >
+                    ReAssign
+                  </button>
                 </div>
-                <button
-                  className="btn btn-warning"
-                  onClick={handleReassignClick}
-                  disabled={!selectedStudent || !selectedProject || !selectedSupervisor}
-                >
-                  ReAssign
-                </button>
               </div>
             )}
           </div>
-        )}
+          )}
 
-        {error && <div className="alert alert-error">{error}</div>}
+         {error && <div className="alert alert-error">{error}</div>}
 
         {loading ? (
           <div className="loading-state">Loading allocations...</div>
@@ -324,32 +384,32 @@ export default function AllocationOversightTab() {
             <p>Blind matching hasn't been done yet or no allocations match the filter.</p>
           </div>
         ) : (
-          <div className="table-container">
-            <table className="table">
+          <div style={{ overflowX: 'auto', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
-                <tr>
-                  <th>Supervisor</th>
-                  <th>Student</th>
-                  <th>Project</th>
-                  <th>Match Date</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                <tr style={{ background: '#f9fafb' }}>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Supervisor</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Student</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Project</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Match Date</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Status</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredAllocations.map((alloc) => (
-                  <tr key={alloc.id}>
-                    <td>{alloc.supervisorName || alloc.supervisor?.name || '-'}</td>
-                    <td>{alloc.studentName || alloc.student?.name || '-'}</td>
-                    <td>{alloc.projectName || alloc.project?.name || '-'}</td>
-                    <td>{alloc.matchDate ? new Date(alloc.matchDate).toLocaleDateString() : '-'}</td>
-                    <td>
+                  <tr key={alloc.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                    <td style={{ padding: '12px 16px', color: '#111827' }}>{alloc.supervisorName || alloc.supervisor?.name || '-'}</td>
+                    <td style={{ padding: '12px 16px', color: '#111827' }}>{alloc.studentName || alloc.student?.name || '-'}</td>
+                    <td style={{ padding: '12px 16px', color: '#111827' }}>{alloc.projectName || alloc.project?.name || '-'}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', color: '#6b7280' }}>{alloc.matchDate ? new Date(alloc.matchDate).toLocaleDateString() : '-'}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                       <span className={getStatusBadge(alloc.status)}>
                         {alloc.status || 'pending'}
                       </span>
                     </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: 4 }}>
+                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
                         <button
                           className="btn btn-sm btn-ghost"
                           title="Mark as Under Review"

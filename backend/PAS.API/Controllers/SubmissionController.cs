@@ -102,6 +102,36 @@ public class SubmissionController : ControllerBase
     }
 
     // ─────────────────────────────────────────────────────────────────────
+    // GET /api/submissions/coursework/{courseworkId}/groups
+    // Get available groups for a group submission
+    // ─────────────────────────────────────────────────────────────────────
+    [HttpGet("coursework/{courseworkId:int}/groups")]
+    public async Task<IActionResult> GetAvailableGroups(int courseworkId)
+    {
+        try
+        {
+            var groups = await _submissionService.GetAvailableGroupsAsync(courseworkId);
+            return Ok(new
+            {
+                message = "Available groups retrieved successfully.",
+                data    = groups
+            });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                message = "An unexpected error occurred.",
+                detail  = ex.Message
+            });
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
     // GET /api/submissions/research-areas
     // Research areas for the dropdown selection
     // ─────────────────────────────────────────────────────────────────────

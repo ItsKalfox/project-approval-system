@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../api';
 
-export default function SupervisorSubmissionsTab() {
+export default function SupervisorSubmissionsTab({ selectedAreas = [] }) {
   const [matchedProjects, setMatchedProjects] = useState([]);
   const [pendingReviews, setPendingReviews]   = useState([]);
+  const [revealMap, setRevealMap]             = useState({});
   const [loading, setLoading]                 = useState(false);
   const [error, setError]                     = useState('');
   const [selected, setSelected]               = useState(null);
@@ -14,15 +15,29 @@ export default function SupervisorSubmissionsTab() {
     setLoading(true);
     setError('');
     try {
-      const res = await api.get('/supervisor/dashboard/submissions');
-      setMatchedProjects(res.data.data?.matchedProjects ?? []);
-      setPendingReviews(res.data.data?.pendingReviews ?? []);
+      const params = new URLSearchParams();
+      if (selectedAreas.length > 0) {
+        selectedAreas.forEach(areaId => params.append('researchAreaIds', areaId.toString()));
+      }
+      const queryString = params.toString();
+      
+      const [subRes, revealRes] = await Promise.all([
+        api.get(`/supervisor/dashboard/submissions${queryString ? '?' + queryString : ''}`),
+        api.get('/supervisor/dashboard/matched-revealed'),
+      ]);
+      setMatchedProjects(subRes.data.data?.matchedProjects ?? []);
+      setPendingReviews(subRes.data.data?.pendingReviews ?? []);
+      const map = {};
+      for (const p of (revealRes.data.data ?? [])) {
+        map[p.projectId] = { studentName: p.studentName, studentEmail: p.studentEmail, studentBatch: p.studentBatch, matchedAt: p.matchedAt };
+      }
+      setRevealMap(map);
     } catch {
       setError('Failed to load submissions.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedAreas]);
 
   useEffect(() => { fetchSubmissions(); }, [fetchSubmissions]);
 
@@ -51,6 +66,67 @@ export default function SupervisorSubmissionsTab() {
     } finally {
       setPdfLoading(false);
     }
+  };
+
+  const RevealCard = ({ student }) => {
+    const [flipped, setFlipped] = useState(false);
+    return (
+      <div style={{ perspective: 800, marginTop: 8 }}>
+        <div style={{
+          width: '100%', height: 140, position: 'relative',
+          transformStyle: 'preserve-3d',
+          transition: 'transform 0.6s cubic-bezier(.4,2,.6,1)',
+          transform: flipped ? 'rotateY(180deg)' : 'none',
+        }}>
+          {/* Front */}
+          <div style={{
+            position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
+            background: 'linear-gradient(135deg,#10b981,#059669)',
+            borderRadius: 10, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 6, color: '#fff',
+          }}>
+            <span style={{ fontSize: 26 }}>*</span>
+            <span style={{ fontWeight: 700, fontSize: 14 }}>Student Identity Revealed!</span>
+            <button
+              onClick={() => setFlipped(true)}
+              style={{
+                marginTop: 4, padding: '4px 16px', borderRadius: 20,
+                border: '1.5px solid #fff', background: 'transparent',
+                color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+              }}
+            >
+              Tap to reveal
+            </button>
+          </div>
+          {/* Back */}
+          <div style={{
+            position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            background: '#fff', border: '1.5px solid #e2e8f0',
+            borderRadius: 10, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 4,
+          }}>
+            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, color: '#94a3b8' }}>Your Student</div>
+            <div style={{ fontWeight: 700, fontSize: 16, color: '#1e293b' }}>{student.studentName}</div>
+            <div style={{ fontSize: 13, color: '#6366f1' }}>{student.studentEmail}</div>
+            {student.studentBatch && (
+              <div style={{ fontSize: 12, color: '#64748b' }}>Batch: {student.studentBatch}</div>
+            )}
+            {student.matchedAt && (
+              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+                Matched on {new Date(student.matchedAt).toLocaleDateString()}
+              </div>
+            )}
+            <button
+              onClick={() => setFlipped(false)}
+              style={{ marginTop: 6, background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 11 }}
+            >
+              Flip Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const ProjectCard = ({ project, badge }) => (
@@ -87,11 +163,12 @@ export default function SupervisorSubmissionsTab() {
           <div>
             <div className="dash-card-title">Submissions</div>
             <div className="dash-card-subtitle">
-              Your matched projects and projects awaiting your review.
+              Review project proposals and track your matched students.
+              Student identities are hidden until a match is confirmed.
             </div>
           </div>
           <button className="btn btn-secondary" onClick={fetchSubmissions} disabled={loading}>
-            {loading ? 'Refreshing…' : 'Refresh'}
+            {loading ? 'Refreshing…' : '↻ Refresh'}
           </button>
         </div>
 
@@ -103,8 +180,13 @@ export default function SupervisorSubmissionsTab() {
             {/* Matched Projects */}
             <div className="submissions-section">
               <div className="submissions-section-header">
-                <span className="submissions-section-title">Matched Projects</span>
-                <span className="submissions-count matched-count">{matchedProjects.length}</span>
+                <span className="submissions-section-title" style={{ color: '#6366f1', fontWeight: 700 }}>
+                  Matched Projects
+                </span>
+                <span className="submissions-count matched-count"
+                  style={{ background: '#6366f1', color: '#fff', borderRadius: 20, padding: '2px 10px', fontSize: 13 }}>
+                  {matchedProjects.length}
+                </span>
               </div>
 
               {matchedProjects.length === 0 ? (
@@ -114,7 +196,12 @@ export default function SupervisorSubmissionsTab() {
               ) : (
                 <div className="project-grid">
                   {matchedProjects.map(p => (
-                    <ProjectCard key={p.projectId} project={p} />
+                    <div key={p.projectId}>
+                      <ProjectCard project={p} />
+                      {revealMap[p.projectId] && (
+                        <RevealCard student={revealMap[p.projectId]} />
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
@@ -123,8 +210,13 @@ export default function SupervisorSubmissionsTab() {
             {/* Pending Reviews */}
             <div className="submissions-section">
               <div className="submissions-section-header">
-                <span className="submissions-section-title">Pending Reviews</span>
-                <span className="submissions-count pending-count">{pendingReviews.length}</span>
+                <span className="submissions-section-title" style={{ color: '#f59e0b', fontWeight: 700 }}>
+                  Pending Reviews
+                </span>
+                <span className="submissions-count pending-count"
+                  style={{ background: '#f59e0b', color: '#fff', borderRadius: 20, padding: '2px 10px', fontSize: 13 }}>
+                  {pendingReviews.length}
+                </span>
               </div>
 
               {pendingReviews.length === 0 ? (
@@ -132,11 +224,16 @@ export default function SupervisorSubmissionsTab() {
                   <p>No pending proposals waiting for review.</p>
                 </div>
               ) : (
-                <div className="project-grid">
-                  {pendingReviews.map(p => (
-                    <ProjectCard key={p.projectId} project={p} />
-                  ))}
-                </div>
+                <>
+                  <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 10 }}>
+                    Student identities are hidden. Express interest to reveal them after matching.
+                  </p>
+                  <div className="project-grid">
+                    {pendingReviews.map(p => (
+                      <ProjectCard key={p.projectId} project={p} />
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </>
@@ -185,7 +282,7 @@ export default function SupervisorSubmissionsTab() {
                   <h4>Proposal PDF</h4>
                   {!pdfUrl
                     ? <button className="btn btn-secondary" onClick={loadPdf} disabled={pdfLoading}>
-                        {pdfLoading ? 'Loading…' : '📄 View Proposal'}
+                        {pdfLoading ? 'Loading...' : 'View Proposal'}
                       </button>
                     : <iframe src={pdfUrl} title="Proposal PDF" className="pdf-viewer" />
                   }

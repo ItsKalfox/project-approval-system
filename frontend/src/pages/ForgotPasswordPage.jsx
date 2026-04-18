@@ -139,7 +139,7 @@ export default function ForgotPasswordPage() {
           {/* ── Done ── */}
           {step === 'done' && (
             <div className="text-center">
-              <div className="success-icon">✅</div>
+              <div className="success-icon">[OK]</div>
               <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Password Reset!</h2>
               <p style={{ color: 'var(--gray-500)', fontSize: 14, marginBottom: 20 }}>
                 Your password has been updated successfully.

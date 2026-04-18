@@ -9,3 +9,9 @@ public class AllocationResponseDto
     public DateTime MatchDate { get; set; }
     public string Status { get; set; } = "pending";
 }
+
+public class ReassignSupervisorRequestDto
+{
+    public int StudentId { get; set; }
+    public int SupervisorId { get; set; }
+}

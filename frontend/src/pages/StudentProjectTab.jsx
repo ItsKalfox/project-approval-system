@@ -11,20 +11,23 @@ export default function StudentProjectTab() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchSubmissions();
   }, []);
 
-  const fetchSubmissions = async () => {
+  const fetchSubmissions = async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
       const res = await api.get('/submissions/my-submissions');
       setSubmissions(res.data.data || []);
     } catch (err) {
       console.error('Error fetching submissions:', err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -54,6 +57,37 @@ export default function StudentProjectTab() {
 
   return (
     <div className="project-tab-container">
+      {/* Summary banner */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: 16, padding: '10px 16px',
+        background: 'linear-gradient(135deg,#10b981,#059669)',
+        borderRadius: 10, color: '#fff',
+      }}>
+        <div style={{ display: 'flex', gap: 24 }}>
+          <div>
+            <div style={{ fontSize: 11, opacity: 0.8, textTransform: 'uppercase', letterSpacing: 1 }}>Total</div>
+            <div style={{ fontWeight: 700, fontSize: 20 }}>{submissions.length}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, opacity: 0.8, textTransform: 'uppercase', letterSpacing: 1 }}>Matched</div>
+            <div style={{ fontWeight: 700, fontSize: 20 }}>
+              {submissions.filter(s => s.matchedSupervisor).length}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={() => fetchSubmissions(true)}
+          disabled={refreshing}
+          style={{
+            padding: '6px 14px', borderRadius: 20, border: '1.5px solid rgba(255,255,255,0.6)',
+            background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+          }}
+        >
+          {refreshing ? 'Refreshing…' : '↻ Refresh'}
+        </button>
+      </div>
+
       <div className="project-table-wrapper">
         <table className="project-table">
           <thead>
@@ -72,6 +106,11 @@ export default function StudentProjectTab() {
                   <td>
                     <div style={{ fontWeight: 600 }}>{sub.courseworkTitle}</div>
                     <div style={{ fontSize: 12, color: 'var(--gray-500)' }}>{sub.title}</div>
+                    {sub.groupName && (
+                      <div style={{ fontSize: 11, color: 'var(--primary-color)', fontWeight: 600, marginTop: 2 }}>
+                        {sub.groupName}
+                      </div>
+                    )}
                   </td>
                   <td>{new Date(sub.submittedAt).toLocaleDateString()}</td>
                   <td>{sub.deadline ? new Date(sub.deadline).toLocaleDateString() : 'N/A'}</td>
@@ -98,9 +137,7 @@ export default function StudentProjectTab() {
                   <tr className="expansion-row">
                     <td colSpan="5">
                       <div className={`expansion-content ${expandedRow === sub.projectId ? 'active' : ''}`}>
-                        <div className="reveal-container">
-                          <RevealCard supervisor={sub.matchedSupervisor} />
-                        </div>
+                        <RevealCard supervisor={sub.matchedSupervisor} />
                       </div>
                     </td>
                   </tr>
@@ -120,32 +157,50 @@ function RevealCard({ supervisor }) {
   const [isFlipped, setIsFlipped] = useState(false);
 
   return (
-    <div className={`flip-card ${isFlipped ? 'flipped' : ''}`}>
-      <div className="flip-card-inner">
-        {/* FRONT */}
-        <div className="flip-card-front">
-          <div style={{ fontSize: 40, marginBottom: 10 }}>🎊</div>
-          <div style={{ fontWeight: 700, fontSize: 18 }}>Supervisor Matched!</div>
-          <button className="reveal-btn" onClick={() => setIsFlipped(true)}>
+    <div style={{ perspective: 800, marginTop: 8 }}>
+      <div style={{
+        width: '100%', height: 140, position: 'relative',
+        transformStyle: 'preserve-3d',
+        transition: 'transform 0.6s cubic-bezier(.4,2,.6,1)',
+        transform: isFlipped ? 'rotateY(180deg)' : 'none',
+      }}>
+        {/* Front */}
+        <div style={{
+          position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
+          background: 'linear-gradient(135deg,#10b981,#059669)',
+          borderRadius: 10, display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', gap: 6, color: '#fff',
+        }}>
+          <span style={{ fontSize: 26 }}>*</span>
+          <span style={{ fontWeight: 700, fontSize: 14 }}>Supervisor Matched!</span>
+          <button
+            onClick={() => setIsFlipped(true)}
+            style={{
+              marginTop: 4, padding: '4px 16px', borderRadius: 20,
+              border: '1.5px solid #fff', background: 'transparent',
+              color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+            }}
+          >
             Tap to reveal
           </button>
         </div>
-
-        {/* BACK */}
-        <div className="flip-card-back">
-          <div className="supervisor-info">
-            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 5 }}>
-              Your Supervisor
-            </div>
-            <div className="supervisor-name">{supervisor.name}</div>
-            <div className="supervisor-email">{supervisor.email}</div>
-            <button 
-              style={{ marginTop: 15, background: 'none', border: 'none', color: 'var(--gray-400)', cursor: 'pointer', fontSize: 11 }}
-              onClick={() => setIsFlipped(false)}
-            >
-              Flip Back
-            </button>
-          </div>
+        {/* Back */}
+        <div style={{
+          position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
+          transform: 'rotateY(180deg)',
+          background: '#fff', border: '1.5px solid #e2e8f0',
+          borderRadius: 10, display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', gap: 4,
+        }}>
+          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, color: '#94a3b8' }}>Your Supervisor</div>
+          <div style={{ fontWeight: 700, fontSize: 16, color: '#1e293b' }}>{supervisor.name}</div>
+          <div style={{ fontSize: 13, color: '#6366f1' }}>{supervisor.email}</div>
+          <button
+            onClick={() => setIsFlipped(false)}
+            style={{ marginTop: 6, background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 11 }}
+          >
+            Flip Back
+          </button>
         </div>
       </div>
     </div>

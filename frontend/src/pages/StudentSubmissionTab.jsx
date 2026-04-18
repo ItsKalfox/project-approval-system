@@ -31,7 +31,10 @@ export default function StudentSubmissionTab() {
     Description: '',
     Abstract: '',
     ResearchAreaId: '',
+    GroupId: '',
   });
+  const [availableGroups, setAvailableGroups] = useState([]);
+  const [loadingGroups, setLoadingGroups] = useState(false);
   const [file, setFile] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -143,11 +146,25 @@ export default function StudentSubmissionTab() {
   };
 
   // ── CREATE submission ──────────────────────────────────────────────────
-  const openCreateForm = () => {
+  const openCreateForm = async () => {
     setIsEditing(false);
-    setFormData({ Title: '', Description: '', Abstract: '', ResearchAreaId: '' });
+    setFormData({ Title: '', Description: '', Abstract: '', ResearchAreaId: '', GroupId: '' });
     setFile(null);
     setShowForm(true);
+
+    // Load available groups if this is a group submission
+    if (selectedPoint && !selectedPoint.isIndividual) {
+      setLoadingGroups(true);
+      try {
+        const res = await api.get(`/submissions/coursework/${selectedPoint.courseworkId}/groups`);
+        setAvailableGroups(res.data.data || []);
+      } catch (err) {
+        console.error('Failed to load groups:', err);
+        setAvailableGroups([]);
+      } finally {
+        setLoadingGroups(false);
+      }
+    }
   };
 
   // ── EDIT submission ────────────────────────────────────────────────────
@@ -159,6 +176,7 @@ export default function StudentSubmissionTab() {
       Description: mySubmission.description || '',
       Abstract: mySubmission.abstract || '',
       ResearchAreaId: mySubmission.researchAreaId?.toString() || '',
+      GroupId: mySubmission.groupId?.toString() || '',
     });
     setFile(null);
     setShowForm(true);
@@ -173,6 +191,7 @@ export default function StudentSubmissionTab() {
     if (!formData.Description.trim()) { flash('Description is required.', 'error'); return; }
     if (!formData.Abstract.trim()) { flash('Abstract is required.', 'error'); return; }
     if (!formData.ResearchAreaId) { flash('Please select a research area.', 'error'); return; }
+    if (!selectedPoint.isIndividual && !formData.GroupId) { flash('Please select a group.', 'error'); return; }
     if (!isEditing && !file) { flash('Please upload a PDF file.', 'error'); return; }
 
     const fd = new FormData();
@@ -180,19 +199,27 @@ export default function StudentSubmissionTab() {
     fd.append('Description', formData.Description.trim());
     fd.append('Abstract', formData.Abstract.trim());
     fd.append('ResearchAreaId', formData.ResearchAreaId);
+    if (selectedPoint.isIndividual) {
+      fd.append('GroupId', '0');
+    } else if (formData.GroupId && formData.GroupId !== '') {
+      fd.append('GroupId', formData.GroupId);
+    }
     if (file) fd.append('file', file);
 
     try {
       setSaving(true);
+      console.log('Submitting to courseworkId:', selectedPoint.courseworkId);
+      console.log('Form data:', formData);
       if (isEditing && mySubmission) {
         await api.put(`/submissions/${mySubmission.projectId}`, fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         flash('Submission updated successfully!');
       } else {
-        await api.post(`/submissions/coursework/${selectedPoint.courseworkId}`, fd, {
+        const response = await api.post(`/submissions/coursework/${selectedPoint.courseworkId}`, fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
+        console.log('Submission response:', response);
         flash('Submission created successfully!');
       }
       setShowForm(false);
@@ -200,7 +227,10 @@ export default function StudentSubmissionTab() {
       fetchMySubmission(selectedPoint.courseworkId);
       fetchSubmissionPoints();
     } catch (err) {
-      flash(err.response?.data?.message || 'Failed to save submission.', 'error');
+      console.error('Submission error:', err);
+      const errorMsg = err.response?.data?.message || err.response?.data?.detail || err.message || 'Failed to save submission.';
+      console.log('Error message:', errorMsg);
+      flash(errorMsg, 'error');
     } finally {
       setSaving(false);
     }
@@ -261,11 +291,11 @@ export default function StudentSubmissionTab() {
               ← Back
             </button>
             <span className="sub-pdf-title">
-              📄 {mySubmission?.proposalFileName || 'Proposal'}
+              {mySubmission?.proposalFileName || 'Proposal'}
             </span>
             <a href={pdfUrl} download={mySubmission?.proposalFileName || 'proposal.pdf'}
               className="btn btn-primary btn-sm">
-              ⬇ Download
+              Download
             </a>
           </div>
           <iframe
@@ -289,7 +319,7 @@ export default function StudentSubmissionTab() {
               ← Back
             </button>
             <h2 className="sub-form-heading">
-              {isEditing ? '✏️ Edit Submission' : '📤 New Submission'}
+              {isEditing ? 'Edit Submission' : 'New Submission'}
             </h2>
           </div>
 
@@ -297,7 +327,7 @@ export default function StudentSubmissionTab() {
             <span className="sub-point-banner-title">{selectedPoint.title}</span>
             {selectedPoint.deadline && (
               <span className={`sub-deadline-chip ${deadlinePassed ? 'passed' : ''}`}>
-                ⏰ {formatDate(selectedPoint.deadline)}
+                {formatDate(selectedPoint.deadline)}
               </span>
             )}
           </div>
@@ -351,6 +381,35 @@ export default function StudentSubmissionTab() {
               </select>
             </div>
 
+            {!selectedPoint?.isIndividual && (
+              <div className="form-group">
+                <label className="form-label">Group *</label>
+                {loadingGroups ? (
+                  <div style={{ padding: '12px', color: 'var(--gray-500)', fontSize: 14 }}>
+                    Loading groups...
+                  </div>
+                ) : (
+                  <select
+                    className="form-input sub-select"
+                    value={formData.GroupId}
+                    onChange={(e) => setFormData({ ...formData, GroupId: e.target.value })}
+                  >
+                    <option value="">— Select a group —</option>
+                    {availableGroups.map((group) => (
+                      <option 
+                        key={group.groupId} 
+                        value={group.groupId}
+                        disabled={group.currentMembers >= group.maxMembers}
+                      >
+                        {group.groupName} ({group.currentMembers}/{group.maxMembers} members)
+                        {group.currentMembers >= group.maxMembers ? ' - FULL' : ''}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            )}
+
             <div className="form-group">
               <label className="form-label">
                 Proposal File (PDF) {isEditing ? '' : '*'}
@@ -379,7 +438,7 @@ export default function StudentSubmissionTab() {
                 />
                 {file ? (
                   <div className="sub-file-info">
-                    <span className="sub-file-icon">📄</span>
+                    <span className="sub-file-icon">[PDF]</span>
                     <div>
                       <div className="sub-file-name">{file.name}</div>
                       <div className="sub-file-size">{formatFileSize(file.size)}</div>
@@ -391,7 +450,7 @@ export default function StudentSubmissionTab() {
                   </div>
                 ) : (
                   <div className="sub-file-placeholder">
-                    <span style={{ fontSize: 28 }}>📎</span>
+                    <span style={{ fontSize: 28 }}>[Attach]</span>
                     <div>Click or drag a PDF file here</div>
                     <div className="sub-file-hint">Max 10 MB • PDF only</div>
                   </div>
@@ -450,7 +509,7 @@ export default function StudentSubmissionTab() {
                 </span>
                 {selectedPoint.deadline && (
                   <span className={`sub-deadline-chip ${deadlinePassed ? 'passed' : ''}`}>
-                    ⏰ Deadline: {formatDateTime(selectedPoint.deadline)}
+                    Deadline: {formatDateTime(selectedPoint.deadline)}
                   </span>
                 )}
                 {deadlinePassed && (
@@ -468,7 +527,7 @@ export default function StudentSubmissionTab() {
           {/* No submission yet */}
           {!loadingSub && !mySubmission && (
             <div className="sub-empty-state">
-              <div className="sub-empty-icon">📝</div>
+              <div className="sub-empty-icon">[Empty]</div>
               <h3>No Submission Yet</h3>
               <p>You haven't submitted a proposal for this coursework.</p>
               {!deadlinePassed ? (
@@ -511,6 +570,14 @@ export default function StudentSubmissionTab() {
                       {mySubmission.researchAreaName || '—'}
                     </span>
                   </div>
+                  {selectedPoint?.isIndividual !== true && mySubmission.groupName && (
+                    <div className="sub-detail-item">
+                      <span className="sub-detail-item-label">Group</span>
+                      <span className="sub-detail-item-value" style={{ fontWeight: 600, color: 'var(--primary-color)' }}>
+                        {mySubmission.groupName}
+                      </span>
+                    </div>
+                  )}
                   <div className="sub-detail-item">
                     <span className="sub-detail-item-label">Submitted At</span>
                     <span className="sub-detail-item-value">
@@ -530,7 +597,7 @@ export default function StudentSubmissionTab() {
                     <span className="sub-detail-item-value sub-file-link"
                       onClick={handleViewPdf}
                       style={{ cursor: 'pointer' }}>
-                      📄 {mySubmission.proposalFileName || 'View PDF'}
+                      {mySubmission.proposalFileName || 'View PDF'}
                       <span className="sub-file-size-inline">
                         ({formatFileSize(mySubmission.fileSize)})
                       </span>
@@ -543,17 +610,17 @@ export default function StudentSubmissionTab() {
                   <button className="btn btn-outline btn-sm"
                     onClick={handleViewPdf}
                     disabled={loadingPdf}>
-                    {loadingPdf ? 'Loading...' : '📄 View PDF'}
+                    {loadingPdf ? 'Loading...' : 'View PDF'}
                   </button>
 
                   {!deadlinePassed && (
                     <>
                       <button className="btn btn-primary btn-sm" onClick={openEditForm}>
-                        ✏️ Edit
+                        Edit
                       </button>
                       <button className="btn btn-danger btn-sm"
                         onClick={() => setShowDeleteConfirm(true)}>
-                        🗑 Delete
+                        Delete
                       </button>
                     </>
                   )}
@@ -600,7 +667,7 @@ export default function StudentSubmissionTab() {
       <div className="dash-card">
         <div className="dash-card-header">
           <div>
-            <div className="dash-card-title">📤 Submission Portal</div>
+            <div className="dash-card-title">Submission Portal</div>
             <div className="dash-card-subtitle">
               View available submission points and manage your proposals
             </div>
@@ -643,7 +710,7 @@ export default function StudentSubmissionTab() {
                   <div className="sub-point-footer">
                     {point.deadline && (
                       <span className={`sub-deadline-chip ${passed ? 'passed' : ''}`}>
-                        ⏰ {formatDate(point.deadline)}
+                        {formatDate(point.deadline)}
                       </span>
                     )}
                     {point.hasSubmitted ? (
