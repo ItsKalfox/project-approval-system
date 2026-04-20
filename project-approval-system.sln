@@ -6,6 +6,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{1AE8
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PAS.API", "backend\PAS.API\PAS.API.csproj", "{A846814D-CA2F-22FD-6D34-FA1248BF0129}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PAS.API.Tests", "backend\PAS.API.Tests\PAS.API.Tests.csproj", "{B956925E-DB3F-33GE-7E45-GB2359CG1230}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -16,12 +18,17 @@ Global
 		{A846814D-CA2F-22FD-6D34-FA1248BF0129}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A846814D-CA2F-22FD-6D34-FA1248BF0129}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A846814D-CA2F-22FD-6D34-FA1248BF0129}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B956925E-DB3F-33GE-7E45-GB2359CG1230}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B956925E-DB3F-33GE-7E45-GB2359CG1230}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B956925E-DB3F-33GE-7E45-GB2359CG1230}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B956925E-DB3F-33GE-7E45-GB2359CG1230}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A846814D-CA2F-22FD-6D34-FA1248BF0129} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
+		{B956925E-DB3F-33GE-7E45-GB2359CG1230} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D3C20E3E-E6AE-4DA2-88AC-42C5757E381E}
