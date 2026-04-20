@@ -22,6 +22,16 @@ namespace PAS.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("PAS.API.Models.Admin", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("Admins");
+                });
+
             modelBuilder.Entity("PAS.API.Models.Coursework", b =>
                 {
                     b.Property<int>("CourseworkId")
@@ -71,8 +81,8 @@ namespace PAS.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GroupId"));
 
-                    b.Property<string>("LeaderId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int?>("LeaderId")
+                        .HasColumnType("int");
 
                     b.Property<int>("MaximumMembers")
                         .HasColumnType("int");
@@ -102,9 +112,8 @@ namespace PAS.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("SupervisorId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("SupervisorId")
+                        .HasColumnType("int");
 
                     b.HasKey("InterestId");
 
@@ -129,13 +138,13 @@ namespace PAS.API.Migrations
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
 
-                    b.Property<string>("SupervisorId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("SupervisorId")
+                        .HasColumnType("int");
 
                     b.HasKey("MatchId");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("ProjectId")
+                        .IsUnique();
 
                     b.HasIndex("SupervisorId");
 
@@ -144,12 +153,44 @@ namespace PAS.API.Migrations
 
             modelBuilder.Entity("PAS.API.Models.ModuleLeader", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("UserId");
 
                     b.ToTable("ModuleLeaders");
+                });
+
+            modelBuilder.Entity("PAS.API.Models.PasswordResetOtp", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OtpCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email");
+
+                    b.ToTable("PasswordResetOtps");
                 });
 
             modelBuilder.Entity("PAS.API.Models.Project", b =>
@@ -163,14 +204,42 @@ namespace PAS.API.Migrations
                     b.Property<string>("Abstract")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("BlobFilePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("FileSize")
+                        .HasColumnType("bigint");
+
                     b.Property<int?>("GroupId")
                         .HasColumnType("int");
 
                     b.Property<bool>("Interested")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ProposalFileName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("ResearchAreaId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("TechnicalStack")
                         .HasColumnType("nvarchar(max)");
@@ -178,6 +247,9 @@ namespace PAS.API.Migrations
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("ProjectId");
 
@@ -207,8 +279,8 @@ namespace PAS.API.Migrations
 
             modelBuilder.Entity("PAS.API.Models.Student", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Batch")
                         .IsRequired()
@@ -221,8 +293,8 @@ namespace PAS.API.Migrations
 
             modelBuilder.Entity("PAS.API.Models.Supervisor", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("UserId");
 
@@ -231,8 +303,11 @@ namespace PAS.API.Migrations
 
             modelBuilder.Entity("PAS.API.Models.User", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -259,6 +334,17 @@ namespace PAS.API.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("PAS.API.Models.Admin", b =>
+                {
+                    b.HasOne("PAS.API.Models.User", "User")
+                        .WithOne("Admin")
+                        .HasForeignKey("PAS.API.Models.Admin", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("PAS.API.Models.CourseworkProject", b =>
@@ -311,8 +397,8 @@ namespace PAS.API.Migrations
             modelBuilder.Entity("PAS.API.Models.Match", b =>
                 {
                     b.HasOne("PAS.API.Models.Project", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
+                        .WithOne("Match")
+                        .HasForeignKey("PAS.API.Models.Match", "ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -380,6 +466,11 @@ namespace PAS.API.Migrations
                     b.Navigation("Projects");
                 });
 
+            modelBuilder.Entity("PAS.API.Models.Project", b =>
+                {
+                    b.Navigation("Match");
+                });
+
             modelBuilder.Entity("PAS.API.Models.ResearchArea", b =>
                 {
                     b.Navigation("Projects");
@@ -387,6 +478,8 @@ namespace PAS.API.Migrations
 
             modelBuilder.Entity("PAS.API.Models.User", b =>
                 {
+                    b.Navigation("Admin");
+
                     b.Navigation("ModuleLeader");
 
                     b.Navigation("Student");

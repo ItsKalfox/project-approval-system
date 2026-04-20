@@ -3,7 +3,7 @@ namespace PAS.API.Models;
 public class Group
 {
     public int GroupId { get; set; }
-    public string? LeaderId { get; set; }
+    public int? LeaderId { get; set; }
     public int MaximumMembers { get; set; } = 5;
 
     public Student? Leader { get; set; }

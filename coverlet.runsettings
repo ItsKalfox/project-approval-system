@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <!-- Exclude generated / non-production code from coverage calculations -->
+          <ExcludeByFile>*\\Migrations\\*;*\\obj\\*;*\\bin\\*;*\\*.Designer.cs;*\\*ModelSnapshot.cs;*\\*.generated.cs;*\\*.g.cs;*\\*.g.i.cs;*\\.nuget\\*;*\\PAS.API\\Tests\\*;*\\PAS.API\\Program.cs</ExcludeByFile>
+
+          <!-- Collector reliably honors Exclude (module + type/namespace filters). -->
+          <Exclude>
+            [PAS.API]PAS.API.Migrations.*,
+            [PAS.API]PAS.API.Tests.*,
+            [PAS.API]Microsoft.AspNetCore.OpenApi.Generated.*,
+            [PAS.API]System.Runtime.CompilerServices.*OpenApiXmlCommentSupport_generated*,
+            [PAS.API]Program,
+            [Microsoft.NET.Test.Sdk]*
+          </Exclude>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

@@ -7,7 +7,7 @@ public class Interest
     public int ProjectId { get; set; }
     public Project Project { get; set; } = null!;
 
-    public string SupervisorId { get; set; } = string.Empty;
+    public int SupervisorId { get; set; }
     public Supervisor Supervisor { get; set; } = null!;
 
     public string Status { get; set; } = "pending";
